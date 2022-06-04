@@ -30,8 +30,20 @@ init =
     { word = [ 'H', 'E', 'L', 'L', 'O' ] }
 
 
+getFeedback : Char -> Word -> Feedback
+getFeedback char word =
+    case char of
+        'H' ->
+            InWord
 
--- UPDATE
+        'O' ->
+            InWord
+
+        'E' ->
+            Correct
+
+        _ ->
+            NotInWord
 
 
 type alias Word =
@@ -42,6 +54,10 @@ type Feedback
     = NotInWord
     | InWord
     | Correct
+
+
+
+-- UPDATE
 
 
 type Msg
@@ -64,7 +80,7 @@ view model =
 
 viewWord : Word -> Html Msg
 viewWord word =
-    div [] (List.map (viewChar Correct) word)
+    div [] (List.map (\char -> viewChar (getFeedback char word) char) word)
 
 
 viewChar : Feedback -> Char -> Html Msg
