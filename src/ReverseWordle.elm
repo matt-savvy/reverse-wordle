@@ -29,7 +29,7 @@ type alias Model =
 
 init : Model
 init =
-    { word = [ 'P', 'L', 'A', 'C', 'E' ]
+    { word = [ 'P', 'L', 'A', 'N', 'E' ]
     , guesses =
         [ [ 'P', 'E', 'A', 'C', 'E' ]
         ]
@@ -38,12 +38,32 @@ init =
 
 getFeedback : Word -> Word -> Feedback
 getFeedback guess word =
-    [ InWord
-    , Correct
-    , InWord
-    , NotInWord
-    , Correct
-    ]
+    getFeedbackHelper guess word []
+
+
+getFeedbackHelper : Word -> Word -> Feedback -> Feedback
+getFeedbackHelper guess word accumulatedFeedback =
+    case ( guess, word ) of
+        ( [], [] ) ->
+            accumulatedFeedback
+
+        ( char :: remainingGuess, wordChar :: remainingWord ) ->
+            let
+                charFeedback : CharFeedback
+                charFeedback =
+                    if char == wordChar then
+                        Correct
+
+                    else if List.member char remainingWord then
+                        InWord
+
+                    else
+                        NotInWord
+            in
+            getFeedbackHelper remainingGuess remainingWord (accumulatedFeedback ++ [ ( char, charFeedback ) ])
+
+        ( _, _ ) ->
+            accumulatedFeedback
 
 
 type alias Word =
@@ -57,7 +77,7 @@ type CharFeedback
 
 
 type alias Feedback =
-    List CharFeedback
+    List ( Char, CharFeedback )
 
 
 
@@ -84,12 +104,7 @@ view model =
 
 viewGuess : Model -> Word -> Html Msg
 viewGuess model guess =
-    let
-        guessWithFeedback : List ( Char, CharFeedback )
-        guessWithFeedback =
-            List.map2 (\a b -> ( a, b )) guess (getFeedback guess model.word)
-    in
-    div [] (List.map (\( char, charFeedback ) -> viewChar charFeedback char) guessWithFeedback)
+    div [] (List.map (\( char, charFeedback ) -> viewChar charFeedback char) (getFeedback guess model.word))
 
 
 viewChar : CharFeedback -> Char -> Html Msg
