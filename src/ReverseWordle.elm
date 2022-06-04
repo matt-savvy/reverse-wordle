@@ -22,38 +22,42 @@ main =
 
 
 type alias Model =
-    { word : Word }
+    { word : Word
+    , guesses : List Word
+    }
 
 
 init : Model
 init =
-    { word = [ 'H', 'E', 'L', 'L', 'O' ] }
+    { word = [ 'P', 'L', 'A', 'C', 'E' ]
+    , guesses =
+        [ [ 'P', 'E', 'A', 'C', 'E' ]
+        ]
+    }
 
 
-getFeedback : Char -> Word -> Feedback
-getFeedback char word =
-    case char of
-        'H' ->
-            InWord
-
-        'O' ->
-            InWord
-
-        'E' ->
-            Correct
-
-        _ ->
-            NotInWord
+getFeedback : Word -> Word -> Feedback
+getFeedback guess word =
+    [ InWord
+    , Correct
+    , InWord
+    , NotInWord
+    , Correct
+    ]
 
 
 type alias Word =
     List Char
 
 
-type Feedback
+type CharFeedback
     = NotInWord
     | InWord
     | Correct
+
+
+type alias Feedback =
+    List CharFeedback
 
 
 
@@ -75,15 +79,20 @@ update _ model =
 
 view : Model -> Html Msg
 view model =
-    div [] [ viewGuess model.word ]
+    div [] (List.map (viewGuess model) model.guesses)
 
 
-viewGuess : Word -> Html Msg
-viewGuess word =
-    div [] (List.map (\char -> viewChar (getFeedback char word) char) word)
+viewGuess : Model -> Word -> Html Msg
+viewGuess model guess =
+    let
+        guessWithFeedback : List ( Char, CharFeedback )
+        guessWithFeedback =
+            List.map2 (\a b -> ( a, b )) guess (getFeedback guess model.word)
+    in
+    div [] (List.map (\( char, charFeedback ) -> viewChar charFeedback char) guessWithFeedback)
 
 
-viewChar : Feedback -> Char -> Html Msg
+viewChar : CharFeedback -> Char -> Html Msg
 viewChar feedback char =
     let
         feedbackColor : String
