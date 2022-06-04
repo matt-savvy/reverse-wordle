@@ -1,7 +1,8 @@
 module ReverseWordle exposing (..)
 
 import Browser
-import Html exposing (Html, div, text)
+import Html exposing (Html, div, span, text)
+import Html.Attributes exposing (style)
 
 
 
@@ -21,16 +22,26 @@ main =
 
 
 type alias Model =
-    ()
+    { word : Word }
 
 
 init : Model
 init =
-    ()
+    { word = [ 'H', 'E', 'L', 'L', 'O' ] }
 
 
 
 -- UPDATE
+
+
+type alias Word =
+    List Char
+
+
+type Feedback
+    = NotInWord
+    | InWord
+    | Correct
 
 
 type Msg
@@ -47,5 +58,33 @@ update _ model =
 
 
 view : Model -> Html Msg
-view _ =
-    div [] [ text "sanity" ]
+view model =
+    div [] [ viewWord model.word ]
+
+
+viewWord : Word -> Html Msg
+viewWord word =
+    div [] (List.map (viewChar Correct) word)
+
+
+viewChar : Feedback -> Char -> Html Msg
+viewChar feedback char =
+    let
+        feedbackColor : String
+        feedbackColor =
+            case feedback of
+                NotInWord ->
+                    "gray"
+
+                InWord ->
+                    "yellow"
+
+                Correct ->
+                    "green"
+    in
+    span
+        [ style "padding" "2px 4px"
+        , style "margin" "2px 4px"
+        , style "background-color" feedbackColor
+        ]
+        [ text (String.fromChar char) ]
