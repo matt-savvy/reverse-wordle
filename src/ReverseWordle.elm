@@ -75,11 +75,11 @@ update _ model =
 
 view : Model -> Html Msg
 view model =
-    div [] [ viewWord model.word ]
+    div [] [ viewGuess model.word ]
 
 
-viewWord : Word -> Html Msg
-viewWord word =
+viewGuess : Word -> Html Msg
+viewGuess word =
     div [] (List.map (\char -> viewChar (getFeedback char word) char) word)
 
 
