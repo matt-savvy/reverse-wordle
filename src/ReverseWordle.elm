@@ -30,7 +30,7 @@ type Guess
 
 
 type alias GuessList =
-    List Guess
+    Array Guess
 
 
 type alias Model =
@@ -50,9 +50,10 @@ init =
         initGuesses : GuessList
         initGuesses =
             List.map (\guess -> NoGuess (getFeedback guess initWord)) [ "grams", "space", "place" ]
+                |> Array.fromList
     in
     { word = initWord
-    , guesses = initGuesses ++ [ Guess initWord (getFeedback initWord initWord) ]
+    , guesses = Array.push (Guess initWord (getFeedback initWord initWord)) initGuesses
     , guessInput = ""
     }
 
@@ -190,7 +191,7 @@ update msg model =
 
 updateGuessList : Word -> Feedback -> GuessList -> GuessList
 updateGuessList guess feedback guesses =
-    Guess guess feedback :: guesses
+    Array.append (Array.fromList [ Guess guess feedback ]) guesses
 
 
 
@@ -200,7 +201,7 @@ updateGuessList guess feedback guesses =
 view : Model -> Html Msg
 view model =
     div [ style "font-size" "20px" ]
-        [ div [] (List.map viewGuess model.guesses)
+        [ div [] (List.map viewGuess (Array.toList model.guesses))
         , viewGuessInput model
         ]
 
