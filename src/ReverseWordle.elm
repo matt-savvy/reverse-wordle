@@ -4,7 +4,7 @@ import Array exposing (Array)
 import Browser
 import Dict exposing (Dict)
 import Html exposing (Html, div, form, h1, input, span, text, ul)
-import Html.Attributes exposing (style, type_, value)
+import Html.Attributes exposing (style, type_, value, maxlength, minlength)
 import Html.Events exposing (onInput, onSubmit)
 
 
@@ -35,7 +35,7 @@ init : Model
 init =
     { word = "plane"
     , guesses =
-        [ "peace" ]
+        [ "eplan", "peace", "plain", "plane" ]
     , guessInput = ""
     }
 
@@ -173,8 +173,7 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div []
-        [ h1 [] [ text model.word ]
-        , ul [] (List.map (viewGuess model) model.guesses)
+        [ div [] (List.map (viewGuess model) model.guesses)
         , viewGuessInput model
         ]
 
@@ -223,8 +222,6 @@ viewChar ( feedback, char ) =
 
 viewGuessInput : Model -> Html Msg
 viewGuessInput model =
-    form [ onSubmit GotGuess ] [ input [ type_ "text", value model.guessInput, onInput GuessInputChanged ] [] ]
+    form [ onSubmit GotGuess ] [ input [ type_ "text", value model.guessInput, onInput GuessInputChanged, maxlength 5, minlength 5 ] [] ]
 
 
-
--- input [type_ "text", onInput GuessInputChanged] []
