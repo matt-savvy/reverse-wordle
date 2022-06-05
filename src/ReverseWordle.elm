@@ -29,6 +29,10 @@ type Guess
     | NoGuess Feedback
 
 
+type alias GuessList =
+    List Guess
+
+
 type alias Model =
     { word : Word
     , guesses : List Guess
@@ -45,7 +49,7 @@ init =
 
         initGuesses : List Guess
         initGuesses =
-            List.map (\guess -> Guess guess (getFeedback guess initWord)) []
+            List.map (\guess -> NoGuess (getFeedback guess initWord)) [ "grams", "space", "place" ]
     in
     { word = initWord
     , guesses = initGuesses ++ [ Guess initWord (getFeedback initWord initWord) ]
@@ -175,10 +179,18 @@ update : Msg -> Model -> Model
 update msg model =
     case msg of
         GotGuess ->
-            { model | guesses = Guess model.guessInput (getFeedback model.guessInput model.word) :: model.guesses, guessInput = "" }
+            { model
+                | guesses = updateGuessList model.guessInput (getFeedback model.guessInput model.word) model.guesses
+                , guessInput = ""
+            }
 
         GuessInputChanged guessText ->
             { model | guessInput = guessText }
+
+
+updateGuessList : Word -> Feedback -> GuessList -> GuessList
+updateGuessList guess feedback guesses =
+    Guess guess feedback :: guesses
 
 
 
@@ -187,7 +199,7 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div []
+    div [ style "font-size" "20px" ]
         [ div [] (List.map viewGuess model.guesses)
         , viewGuessInput model
         ]
@@ -207,10 +219,6 @@ viewGuess guess =
 
         NoGuess feedback ->
             div [] (List.map viewChar (formatFeedback "     " feedback))
-
-
-
--- div [] (List.map viewChar feedback)
 
 
 viewChar : ( CharFeedback, Char ) -> Html Msg
@@ -234,6 +242,10 @@ viewChar ( feedback, char ) =
     span
         [ style "padding" "2px 4px"
         , style "margin" "2px 4px"
+        , style "height" "1em"
+        , style "min-width" "12px"
+        , style "display" "inline-block"
+        , style "font-family" "monospace"
         , style "background-color" feedbackColor
         ]
         [ text (String.fromChar char |> String.toUpper) ]
