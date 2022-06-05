@@ -4,7 +4,7 @@ import Array exposing (Array)
 import Browser
 import Dict exposing (Dict)
 import Html exposing (Html, div, form, h1, input, span, text, ul)
-import Html.Attributes exposing (style, type_, value, maxlength, minlength)
+import Html.Attributes exposing (maxlength, minlength, style, type_, value)
 import Html.Events exposing (onInput, onSubmit)
 
 
@@ -24,18 +24,31 @@ main =
 -- MODEL
 
 
+type Guess
+    = Guess Word Feedback
+    | NoGuess Feedback
+
+
 type alias Model =
     { word : Word
-    , guesses : List Word
+    , guesses : List Guess
     , guessInput : String
     }
 
 
 init : Model
 init =
-    { word = "plane"
-    , guesses =
-        [ "eplan", "peace", "plain", "plane" ]
+    let
+        initWord : Word
+        initWord =
+            "plane"
+
+        initGuesses : List Guess
+        initGuesses =
+            List.map (\guess -> Guess guess (getFeedback guess initWord)) []
+    in
+    { word = initWord
+    , guesses = initGuesses ++ [ Guess initWord (getFeedback initWord initWord) ]
     , guessInput = ""
     }
 
@@ -80,8 +93,10 @@ getFeedbackHelper feedbackRecord =
                     ( Just guessChar, Just wordChar ) ->
                         if (Dict.get guessChar wordDict |> Maybe.withDefault 0) > 0 then
                             FeedbackRecord guess word (Dict.update guessChar decrementCount wordDict) (Dict.insert i InWord feedback)
+
                         else if List.member guessChar (Array.toList word) then
                             FeedbackRecord guess word wordDict (Dict.insert i Incorrect feedback)
+
                         else
                             FeedbackRecord guess word wordDict (Dict.insert i NotInWord feedback)
 
@@ -160,7 +175,7 @@ update : Msg -> Model -> Model
 update msg model =
     case msg of
         GotGuess ->
-            { model | guesses = model.guesses ++ [ model.guessInput ], guessInput = "" }
+            { model | guesses = Guess model.guessInput (getFeedback model.guessInput model.word) :: model.guesses, guessInput = "" }
 
         GuessInputChanged guessText ->
             { model | guessInput = guessText }
@@ -173,7 +188,7 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div []
-        [ div [] (List.map (viewGuess model) model.guesses)
+        [ div [] (List.map viewGuess model.guesses)
         , viewGuessInput model
         ]
 
@@ -184,14 +199,18 @@ formatFeedback guess feedback =
         |> List.map2 Tuple.pair (Dict.values feedback)
 
 
-viewGuess : Model -> Word -> Html Msg
-viewGuess model guess =
-    let
-        feedback : List ( CharFeedback, Char )
-        feedback =
-            getFeedback guess model.word |> formatFeedback guess
-    in
-    div [] (List.map viewChar feedback)
+viewGuess : Guess -> Html Msg
+viewGuess guess =
+    case guess of
+        Guess word feedback ->
+            div [] (List.map viewChar (formatFeedback word feedback))
+
+        NoGuess feedback ->
+            div [] (List.map viewChar (formatFeedback "     " feedback))
+
+
+
+-- div [] (List.map viewChar feedback)
 
 
 viewChar : ( CharFeedback, Char ) -> Html Msg
@@ -223,5 +242,3 @@ viewChar ( feedback, char ) =
 viewGuessInput : Model -> Html Msg
 viewGuessInput model =
     form [ onSubmit GotGuess ] [ input [ type_ "text", value model.guessInput, onInput GuessInputChanged, maxlength 5, minlength 5 ] [] ]
-
-
