@@ -35,7 +35,7 @@ type alias GuessList =
 
 type alias Model =
     { word : Word
-    , guesses : List Guess
+    , guesses : GuessList
     , guessInput : String
     }
 
@@ -47,7 +47,7 @@ init =
         initWord =
             "plane"
 
-        initGuesses : List Guess
+        initGuesses : GuessList
         initGuesses =
             List.map (\guess -> NoGuess (getFeedback guess initWord)) [ "grams", "space", "place" ]
     in
