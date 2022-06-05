@@ -46,6 +46,7 @@ type alias Word =
 
 type CharFeedback
     = NotInWord
+    | Incorrect
     | InWord
     | Correct
 
@@ -58,7 +59,6 @@ getFeedback : Word -> Word -> Dict Int CharFeedback
 getFeedback guess word =
     getFeedbackFilter (guess |> String.toList |> Array.fromList) (word |> String.toList |> Array.fromList)
         |> addWordDict
-        |> (\feedback -> Debug.log "wordDict added" feedback)
         |> getFeedbackHelper
         |> .feedback
 
@@ -72,7 +72,7 @@ getFeedbackHelper : FeedbackRecord -> FeedbackRecord
 getFeedbackHelper feedbackRecord =
     List.foldl
         (\i { guess, word, wordDict, feedback } ->
-            if Dict.member i (Debug.log "feedback" feedback) then
+            if Dict.member i feedback then
                 FeedbackRecord guess word wordDict feedback
 
             else
@@ -80,9 +80,10 @@ getFeedbackHelper feedbackRecord =
                     ( Just guessChar, Just wordChar ) ->
                         if (Dict.get guessChar wordDict |> Maybe.withDefault 0) > 0 then
                             FeedbackRecord guess word (Dict.update guessChar decrementCount wordDict) (Dict.insert i InWord feedback)
-
+                        else if List.member guessChar (Array.toList word) then
+                            FeedbackRecord guess word wordDict (Dict.insert i Incorrect feedback)
                         else
-                            FeedbackRecord guess word (Debug.log (String.cons guessChar " not in wordDict") wordDict) (Dict.insert i NotInWord feedback)
+                            FeedbackRecord guess word wordDict (Dict.insert i NotInWord feedback)
 
                     _ ->
                         FeedbackRecord guess word wordDict feedback
@@ -201,6 +202,9 @@ viewChar ( feedback, char ) =
         feedbackColor =
             case feedback of
                 NotInWord ->
+                    "gray"
+
+                Incorrect ->
                     "gray"
 
                 InWord ->
