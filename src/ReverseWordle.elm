@@ -5,7 +5,7 @@ import Browser
 import Dict exposing (Dict)
 import Html exposing (Html, div, form, h1, input, span, text, ul)
 import Html.Attributes exposing (maxlength, minlength, style, type_, value)
-import Html.Events exposing (onInput, onSubmit)
+import Html.Events exposing (onClick, onInput, onSubmit)
 
 
 
@@ -27,6 +27,7 @@ main =
 type Guess
     = Guess Word Feedback
     | NoGuess Feedback
+    | Solution Word Feedback
 
 
 type alias GuessList =
@@ -37,6 +38,7 @@ type alias Model =
     { word : Word
     , guesses : GuessList
     , guessInput : String
+    , currentGuess : Int
     }
 
 
@@ -49,12 +51,13 @@ init =
 
         initGuesses : GuessList
         initGuesses =
-            List.map (\guess -> NoGuess (getFeedback guess initWord)) [ "grams", "space", "place" ]
+            List.map (\guess -> NoGuess (getFeedback guess initWord)) [ "grams", "spade", "place" ]
                 |> Array.fromList
     in
     { word = initWord
-    , guesses = Array.push (Guess initWord (getFeedback initWord initWord)) initGuesses
+    , guesses = Array.push (Solution initWord (getFeedback initWord initWord)) initGuesses
     , guessInput = ""
+    , currentGuess = Array.length initGuesses - 1
     }
 
 
@@ -174,24 +177,76 @@ createWordDict word =
 type Msg
     = GotGuess
     | GuessInputChanged String
+    | ClickedGuess Int
+
+
+simplifyFeedback : Feedback -> Feedback
+simplifyFeedback feedback =
+    Dict.map
+        (\_ charFeedback ->
+            case charFeedback of
+                Incorrect ->
+                    Incorrect
+
+                NotInWord ->
+                    Incorrect
+
+                _ ->
+                    charFeedback
+        )
+        feedback
+        |> Debug.log "f"
 
 
 update : Msg -> Model -> Model
 update msg model =
     case msg of
         GotGuess ->
-            { model
-                | guesses = updateGuessList model.guessInput (getFeedback model.guessInput model.word) model.guesses
-                , guessInput = ""
-            }
+            let
+                guessFeedback : Feedback
+                guessFeedback =
+                    getFeedback model.guessInput model.word
+
+                currentGuess : Maybe Guess
+                currentGuess =
+                    Array.get model.currentGuess model.guesses
+
+                currentGuessFeedback : Feedback
+                currentGuessFeedback =
+                    case currentGuess of
+                        Just (NoGuess feedback) ->
+                            feedback
+
+                        Just (Guess word feedback) ->
+                            feedback
+
+                        Just (Solution word feedback) ->
+                            feedback
+
+                        Nothing ->
+                            Dict.empty
+            in
+            case simplifyFeedback guessFeedback == simplifyFeedback currentGuessFeedback of
+                True ->
+                    { model
+                        | guesses = updateGuessList model.guessInput (getFeedback model.guessInput model.word) model.currentGuess model.guesses
+                        , guessInput = ""
+                        , currentGuess = model.currentGuess - 1
+                    }
+
+                False ->
+                    model
 
         GuessInputChanged guessText ->
             { model | guessInput = guessText }
 
+        ClickedGuess i ->
+            { model | currentGuess = i }
 
-updateGuessList : Word -> Feedback -> GuessList -> GuessList
-updateGuessList guess feedback guesses =
-    Array.append (Array.fromList [ Guess guess feedback ]) guesses
+
+updateGuessList : Word -> Feedback -> Int -> GuessList -> GuessList
+updateGuessList guess feedback i guesses =
+    Array.set i (Guess guess feedback) guesses
 
 
 
@@ -200,8 +255,8 @@ updateGuessList guess feedback guesses =
 
 view : Model -> Html Msg
 view model =
-    div [ style "font-size" "20px" ]
-        [ div [] (List.map viewGuess (Array.toList model.guesses))
+    div [ style "font-size" "20px", style "width" "fit-content" ]
+        [ div [] (List.map (\( i, guess ) -> viewGuess (i == model.currentGuess) i guess) (Array.toIndexedList model.guesses))
         , viewGuessInput model
         ]
 
@@ -212,14 +267,31 @@ formatFeedback guess feedback =
         |> List.map2 Tuple.pair (Dict.values feedback)
 
 
-viewGuess : Guess -> Html Msg
-viewGuess guess =
+viewGuess : Bool -> Int -> Guess -> Html Msg
+viewGuess isCurrentGuess index guess =
     case guess of
         Guess word feedback ->
+            div
+                (if isCurrentGuess then
+                    [ style "border" "1px solid black" ]
+
+                 else
+                    [ onClick (ClickedGuess index) ]
+                )
+                (List.map viewChar (formatFeedback word feedback))
+
+        Solution word feedback ->
             div [] (List.map viewChar (formatFeedback word feedback))
 
         NoGuess feedback ->
-            div [] (List.map viewChar (formatFeedback "     " feedback))
+            div
+                (if isCurrentGuess then
+                    [ style "border" "1px solid black" ]
+
+                 else
+                    [ onClick (ClickedGuess index) ]
+                )
+                (List.map viewChar (formatFeedback "     " feedback))
 
 
 viewChar : ( CharFeedback, Char ) -> Html Msg
