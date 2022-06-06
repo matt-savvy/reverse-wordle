@@ -34,10 +34,14 @@ type alias GuessList =
     Array Guess
 
 
+type GuessInput
+    = GuessInput String
+
+
 type alias Model =
     { word : Word
     , guesses : GuessList
-    , guessInput : String
+    , guessInput : GuessInput
     , currentGuess : Int
     }
 
@@ -56,7 +60,7 @@ init =
     in
     { word = initWord
     , guesses = Array.push (Solution initWord (getFeedback initWord initWord)) initGuesses
-    , guessInput = ""
+    , guessInput = GuessInput ""
     , currentGuess = Array.length initGuesses - 1
     }
 
@@ -198,6 +202,13 @@ simplifyFeedback feedback =
         |> Debug.log "f"
 
 
+guessInputToString : GuessInput -> String
+guessInputToString guessInput =
+    case guessInput of
+        GuessInput str ->
+            str
+
+
 update : Msg -> Model -> Model
 update msg model =
     case msg of
@@ -205,7 +216,7 @@ update msg model =
             let
                 guessFeedback : Feedback
                 guessFeedback =
-                    getFeedback model.guessInput model.word
+                    getFeedback (guessInputToString model.guessInput) model.word
 
                 currentGuess : Maybe Guess
                 currentGuess =
@@ -229,8 +240,8 @@ update msg model =
             case simplifyFeedback guessFeedback == simplifyFeedback currentGuessFeedback of
                 True ->
                     { model
-                        | guesses = updateGuessList model.guessInput (getFeedback model.guessInput model.word) model.currentGuess model.guesses
-                        , guessInput = ""
+                        | guesses = updateGuessList (guessInputToString model.guessInput) (getFeedback (guessInputToString model.guessInput) model.word) model.currentGuess model.guesses
+                        , guessInput = GuessInput ""
                         , currentGuess = model.currentGuess - 1
                     }
 
@@ -238,7 +249,7 @@ update msg model =
                     model
 
         GuessInputChanged guessText ->
-            { model | guessInput = guessText }
+            { model | guessInput = GuessInput guessText }
 
         ClickedGuess i ->
             { model | currentGuess = i }
@@ -326,4 +337,6 @@ viewChar ( feedback, char ) =
 
 viewGuessInput : Model -> Html Msg
 viewGuessInput model =
-    form [ onSubmit GotGuess ] [ input [ type_ "text", value model.guessInput, onInput GuessInputChanged, maxlength 5, minlength 5 ] [] ]
+    case model.guessInput of
+        GuessInput guessInput ->
+            form [ onSubmit GotGuess ] [ input [ type_ "text", value guessInput, onInput GuessInputChanged, maxlength 5, minlength 5 ] [] ]
