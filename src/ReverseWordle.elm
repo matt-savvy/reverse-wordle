@@ -314,7 +314,7 @@ view : Model -> Html Msg
 view model =
     div [ style "font-size" "20px" ]
         [ h1 [] [ text "Reverse Wordle" ]
-        , div [ style "width" "fit-content" ] (List.map (\( i, guess ) -> viewGuess (i == model.currentGuess) i guess) (Array.toIndexedList model.guesses))
+        , div [ style "width" "fit-content" ] (List.map (\( i, guess ) -> viewGuess ((i == model.currentGuess) && (model.gameStatus /= Solved)) i guess) (Array.toIndexedList model.guesses))
         , button [ onClick ClickedReset ] [ text "reset" ]
         , if model.gameStatus == Solved then
             h2 [] [ text "you did it!" ]
