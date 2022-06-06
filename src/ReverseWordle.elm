@@ -308,7 +308,12 @@ update msg model =
                     { model
                         | guesses = nextGuesses
                         , guessInput = GuessInput ""
-                        , selection = nextSelection
+                        , selection =
+                            if nextGameStatus == Solved then
+                                NoSelection
+
+                            else
+                                nextSelection
                         , gameStatus = nextGameStatus
                     }
 
@@ -319,7 +324,12 @@ update msg model =
             { model | guessInput = GuessInput (guessText |> String.toLower |> String.filter Char.isAlpha) }
 
         ClickedGuess i ->
-            { model | selection = SelectedIndex i }
+            case model.gameStatus of
+                Active ->
+                    { model | selection = SelectedIndex i }
+
+                Solved ->
+                    model
 
         ClickedReset ->
             init
@@ -349,7 +359,7 @@ view model =
         getIsSelected index =
             case model.selection of
                 SelectedIndex selectedIndex ->
-                    (index == selectedIndex) && (model.gameStatus /= Solved)
+                    index == selectedIndex
 
                 SelectedSolution ->
                     False
