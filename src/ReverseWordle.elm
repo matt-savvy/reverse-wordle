@@ -3,7 +3,7 @@ module ReverseWordle exposing (..)
 import Array exposing (Array)
 import Browser
 import Dict exposing (Dict)
-import Html exposing (Html, div, form, h1, input, span, text, ul)
+import Html exposing (Html, button, div, form, h1, input, span, text, ul)
 import Html.Attributes exposing (maxlength, minlength, style, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
 
@@ -183,6 +183,7 @@ type Msg
     = GotGuess
     | GuessInputChanged String
     | ClickedGuess Int
+    | ClickedReset
 
 
 simplifyFeedback : Feedback -> Feedback
@@ -258,6 +259,9 @@ update msg model =
         ClickedGuess i ->
             { model | currentGuess = i }
 
+        ClickedReset ->
+            init
+
 
 updateGuessList : Word -> Feedback -> Int -> GuessList -> GuessList
 updateGuessList guess feedback i guesses =
@@ -272,6 +276,7 @@ view : Model -> Html Msg
 view model =
     div [ style "font-size" "20px" ]
         [ div [ style "width" "fit-content" ] (List.map (\( i, guess ) -> viewGuess (i == model.currentGuess) i guess) (Array.toIndexedList model.guesses))
+        , button [ onClick ClickedReset ] [ text "reset" ]
         , viewGuessInput model
         ]
 
