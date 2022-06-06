@@ -66,7 +66,7 @@ init =
                 |> Array.fromList
     in
     { word = initWord
-    , guesses = Array.push (Solution initWord) initGuesses
+    , guesses = initGuesses
     , guessInput = GuessInput ""
     , currentGuess = Array.length initGuesses - 1
     , gameStatus = Active
@@ -319,7 +319,7 @@ view model =
 
         guessList : List Guess
         guessList =
-            Array.toList model.guesses
+            Array.toList (Array.push (Solution model.word) model.guesses)
     in
     div [ style "font-size" "20px" ]
         [ h1 [] [ text "Reverse Wordle" ]
