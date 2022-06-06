@@ -44,11 +44,17 @@ type GameStatus
     | Solved
 
 
+type Selection
+    = SelectedIndex Int
+    | SelectedSolution
+    | NoSelection
+
+
 type alias Model =
     { word : Word
     , guesses : Guesses
     , guessInput : GuessInput
-    , selection : Int
+    , selection : Selection
     , gameStatus : GameStatus
     }
 
@@ -68,7 +74,7 @@ init =
     { word = initWord
     , guesses = initGuesses
     , guessInput = GuessInput ""
-    , selection = Array.length initGuesses - 1
+    , selection = SelectedIndex (Array.length initGuesses - 1)
     , gameStatus = Active
     }
 
@@ -224,19 +230,28 @@ guessInputToString guessInput =
 update : Msg -> Model -> Model
 update msg model =
     case msg of
+        -- TODO handle it here where we get a guess but don't actually have anything selected
         GotGuess ->
             let
                 guessFeedback : Feedback
                 guessFeedback =
                     getFeedback (guessInputToString model.guessInput) model.word
 
-                selection : Maybe Guess
-                selection =
-                    Array.get model.selection model.guesses
+                selectedGuess : Maybe Guess
+                selectedGuess =
+                    case model.selection of
+                        SelectedIndex index ->
+                            Array.get index model.guesses
+
+                        SelectedSolution ->
+                            Nothing
+
+                        NoSelection ->
+                            Nothing
 
                 selectionFeedback : Feedback
                 selectionFeedback =
-                    case selection of
+                    case selectedGuess of
                         Just (NoGuess feedback) ->
                             feedback
 
@@ -280,11 +295,20 @@ update msg model =
 
                             else
                                 Active
+
+                        nextSelection : Selection
+                        nextSelection =
+                            case model.selection of
+                                SelectedIndex index ->
+                                    SelectedIndex (index - 1)
+
+                                _ ->
+                                    model.selection
                     in
                     { model
                         | guesses = nextGuesses
                         , guessInput = GuessInput ""
-                        , selection = model.selection - 1
+                        , selection = nextSelection
                         , gameStatus = nextGameStatus
                     }
 
@@ -295,15 +319,23 @@ update msg model =
             { model | guessInput = GuessInput (guessText |> String.toLower |> String.filter Char.isAlpha) }
 
         ClickedGuess i ->
-            { model | selection = i }
+            { model | selection = SelectedIndex i }
 
         ClickedReset ->
             init
 
 
-updateGuesses : Word -> Feedback -> Int -> Guesses -> Guesses
-updateGuesses guess feedback i guesses =
-    Array.set i (Guess guess feedback) guesses
+updateGuesses : Word -> Feedback -> Selection -> Guesses -> Guesses
+updateGuesses guess feedback selection guesses =
+    case selection of
+        SelectedIndex index ->
+            Array.set index (Guess guess feedback) guesses
+
+        SelectedSolution ->
+            guesses
+
+        NoSelection ->
+            guesses
 
 
 
@@ -315,7 +347,15 @@ view model =
     let
         getIsSelected : Int -> Bool
         getIsSelected index =
-            (index == model.selection) && (model.gameStatus /= Solved)
+            case model.selection of
+                SelectedIndex selectedIndex ->
+                    (index == selectedIndex) && (model.gameStatus /= Solved)
+
+                SelectedSolution ->
+                    False
+
+                NoSelection ->
+                    False
 
         guessList : List Guess
         guessList =
