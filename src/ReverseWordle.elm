@@ -3,7 +3,7 @@ module ReverseWordle exposing (..)
 import Array exposing (Array)
 import Browser
 import Dict exposing (Dict)
-import Html exposing (Html, button, div, form, h1, input, span, text, ul)
+import Html exposing (Html, button, div, form, h1, h2, input, span, text, ul)
 import Html.Attributes exposing (maxlength, minlength, style, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
 
@@ -41,6 +41,7 @@ type GuessInput
 
 type GameStatus
     = Active
+    | Solved
 
 
 type alias Model =
@@ -250,10 +251,41 @@ update msg model =
             in
             case simplifyFeedback guessFeedback == simplifyFeedback currentGuessFeedback of
                 True ->
+                    let
+                        nextGuessList : GuessList
+                        nextGuessList =
+                            updateGuessList (guessInputToString model.guessInput) (getFeedback (guessInputToString model.guessInput) model.word) model.currentGuess model.guesses
+
+                        nextGameStatus : GameStatus
+                        nextGameStatus =
+                            if
+                                (Array.filter
+                                    (\guess ->
+                                        case guess of
+                                            NoGuess _ ->
+                                                True
+
+                                            Guess _ _ ->
+                                                False
+
+                                            Solution _ _ ->
+                                                False
+                                    )
+                                    nextGuessList
+                                    |> Array.length
+                                )
+                                    == 0
+                            then
+                                Solved
+
+                            else
+                                Active
+                    in
                     { model
-                        | guesses = updateGuessList (guessInputToString model.guessInput) (getFeedback (guessInputToString model.guessInput) model.word) model.currentGuess model.guesses
+                        | guesses = nextGuessList
                         , guessInput = GuessInput ""
                         , currentGuess = model.currentGuess - 1
+                        , gameStatus = nextGameStatus
                     }
 
                 False ->
@@ -281,10 +313,15 @@ updateGuessList guess feedback i guesses =
 view : Model -> Html Msg
 view model =
     div [ style "font-size" "20px" ]
-        [ h1 [] [text "Reverse Wordle"]
+        [ h1 [] [ text "Reverse Wordle" ]
         , div [ style "width" "fit-content" ] (List.map (\( i, guess ) -> viewGuess (i == model.currentGuess) i guess) (Array.toIndexedList model.guesses))
         , button [ onClick ClickedReset ] [ text "reset" ]
         , viewGuessInput model
+        , if model.gameStatus == Solved then
+            h2 [] [ text "you did it!" ]
+
+          else
+            text ""
         ]
 
 
