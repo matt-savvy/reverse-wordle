@@ -36,6 +36,7 @@ type alias GuessList =
 
 type GuessInput
     = GuessInput String
+    | RejectedInput String Feedback
 
 
 type alias Model =
@@ -208,6 +209,9 @@ guessInputToString guessInput =
         GuessInput str ->
             str
 
+        RejectedInput str _ ->
+            str
+
 
 update : Msg -> Model -> Model
 update msg model =
@@ -246,7 +250,7 @@ update msg model =
                     }
 
                 False ->
-                    model
+                    { model | guessInput = RejectedInput (guessInputToString model.guessInput) guessFeedback }
 
         GuessInputChanged guessText ->
             { model | guessInput = GuessInput guessText }
@@ -266,8 +270,8 @@ updateGuessList guess feedback i guesses =
 
 view : Model -> Html Msg
 view model =
-    div [ style "font-size" "20px", style "width" "fit-content" ]
-        [ div [] (List.map (\( i, guess ) -> viewGuess (i == model.currentGuess) i guess) (Array.toIndexedList model.guesses))
+    div [ style "font-size" "20px" ]
+        [ div [ style "width" "fit-content" ] (List.map (\( i, guess ) -> viewGuess (i == model.currentGuess) i guess) (Array.toIndexedList model.guesses))
         , viewGuessInput model
         ]
 
@@ -339,4 +343,21 @@ viewGuessInput : Model -> Html Msg
 viewGuessInput model =
     case model.guessInput of
         GuessInput guessInput ->
-            form [ onSubmit GotGuess ] [ input [ type_ "text", value guessInput, onInput GuessInputChanged, maxlength 5, minlength 5 ] [] ]
+            form
+                [ onSubmit GotGuess ]
+                [ input
+                    [ type_ "text", value guessInput, onInput GuessInputChanged, maxlength 5, minlength 5 ]
+                    []
+                ]
+
+        RejectedInput guessInput _ ->
+            form
+                [ onSubmit GotGuess ]
+                [ input
+                    [ type_ "text", value guessInput, onInput GuessInputChanged, maxlength 5, minlength 5 ]
+                    []
+                , div []
+                    [ text "This guess could not be correct. Your guess would look like this :"
+                    , div [] (List.map viewChar (formatFeedback guessInput (getFeedback guessInput model.word)))
+                    ]
+                ]
