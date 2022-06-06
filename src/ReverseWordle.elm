@@ -253,7 +253,7 @@ update msg model =
                     { model | guessInput = RejectedInput (guessInputToString model.guessInput) guessFeedback }
 
         GuessInputChanged guessText ->
-            { model | guessInput = GuessInput guessText }
+            { model | guessInput = GuessInput (guessText |> String.toLower) }
 
         ClickedGuess i ->
             { model | currentGuess = i }
