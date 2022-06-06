@@ -27,7 +27,7 @@ main =
 type Guess
     = Guess Word Feedback
     | NoGuess Feedback
-    | Solution Word Feedback
+    | Solution Word
 
 
 type alias GuessList =
@@ -66,7 +66,7 @@ init =
                 |> Array.fromList
     in
     { word = initWord
-    , guesses = Array.push (Solution initWord (getFeedback initWord initWord)) initGuesses
+    , guesses = Array.push (Solution initWord) initGuesses
     , guessInput = GuessInput ""
     , currentGuess = Array.length initGuesses - 1
     , gameStatus = Active
@@ -243,8 +243,8 @@ update msg model =
                         Just (Guess word feedback) ->
                             feedback
 
-                        Just (Solution word feedback) ->
-                            feedback
+                        Just (Solution word) ->
+                            getFeedback word word
 
                         Nothing ->
                             Dict.empty
@@ -268,7 +268,7 @@ update msg model =
                                             Guess _ _ ->
                                                 False
 
-                                            Solution _ _ ->
+                                            Solution _ ->
                                                 False
                                     )
                                     nextGuessList
@@ -343,8 +343,8 @@ viewGuess isCurrentGuess index guess =
                 )
                 (List.map viewChar (formatFeedback word feedback))
 
-        Solution word feedback ->
-            div [] (List.map viewChar (formatFeedback word feedback))
+        Solution word ->
+            div [] (List.map viewChar (List.map2 Tuple.pair (List.repeat 5 Correct) (String.toList word)))
 
         NoGuess feedback ->
             div
