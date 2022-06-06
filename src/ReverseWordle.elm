@@ -48,7 +48,7 @@ type alias Model =
     { word : Word
     , guesses : Guesses
     , guessInput : GuessInput
-    , currentGuess : Int
+    , selection : Int
     , gameStatus : GameStatus
     }
 
@@ -68,7 +68,7 @@ init =
     { word = initWord
     , guesses = initGuesses
     , guessInput = GuessInput ""
-    , currentGuess = Array.length initGuesses - 1
+    , selection = Array.length initGuesses - 1
     , gameStatus = Active
     }
 
@@ -230,13 +230,13 @@ update msg model =
                 guessFeedback =
                     getFeedback (guessInputToString model.guessInput) model.word
 
-                currentGuess : Maybe Guess
-                currentGuess =
-                    Array.get model.currentGuess model.guesses
+                selection : Maybe Guess
+                selection =
+                    Array.get model.selection model.guesses
 
-                currentGuessFeedback : Feedback
-                currentGuessFeedback =
-                    case currentGuess of
+                selectionFeedback : Feedback
+                selectionFeedback =
+                    case selection of
                         Just (NoGuess feedback) ->
                             feedback
 
@@ -249,12 +249,12 @@ update msg model =
                         Nothing ->
                             Dict.empty
             in
-            case simplifyFeedback guessFeedback == simplifyFeedback currentGuessFeedback of
+            case simplifyFeedback guessFeedback == simplifyFeedback selectionFeedback of
                 True ->
                     let
                         nextGuesses : Guesses
                         nextGuesses =
-                            updateGuesses (guessInputToString model.guessInput) (getFeedback (guessInputToString model.guessInput) model.word) model.currentGuess model.guesses
+                            updateGuesses (guessInputToString model.guessInput) (getFeedback (guessInputToString model.guessInput) model.word) model.selection model.guesses
 
                         nextGameStatus : GameStatus
                         nextGameStatus =
@@ -284,7 +284,7 @@ update msg model =
                     { model
                         | guesses = nextGuesses
                         , guessInput = GuessInput ""
-                        , currentGuess = model.currentGuess - 1
+                        , selection = model.selection - 1
                         , gameStatus = nextGameStatus
                     }
 
@@ -295,7 +295,7 @@ update msg model =
             { model | guessInput = GuessInput (guessText |> String.toLower |> String.filter Char.isAlpha) }
 
         ClickedGuess i ->
-            { model | currentGuess = i }
+            { model | selection = i }
 
         ClickedReset ->
             init
@@ -315,7 +315,7 @@ view model =
     let
         getIsSelected : Int -> Bool
         getIsSelected index =
-            (index == model.currentGuess) && (model.gameStatus /= Solved)
+            (index == model.selection) && (model.gameStatus /= Solved)
 
         guessList : List Guess
         guessList =
