@@ -320,7 +320,7 @@ view model =
     div [ style "font-size" "20px" ]
         [ h1 [] [ text "Reverse Wordle" ]
         , div [ style "width" "fit-content" ]
-            (List.map (\( i, guess ) -> viewGuess (getIsSelected i) i guess) (Array.toIndexedList model.guesses))
+            (List.indexedMap (\i guess -> viewGuess (getIsSelected i) i guess) (Array.toList model.guesses))
         , button [ onClick ClickedReset ] [ text "reset" ]
         , if model.gameStatus == Solved then
             h2 [] [ text "you did it!" ]
