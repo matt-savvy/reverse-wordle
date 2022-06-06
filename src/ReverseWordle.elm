@@ -30,7 +30,7 @@ type Guess
     | Solution Word
 
 
-type alias GuessList =
+type alias Guesses =
     Array Guess
 
 
@@ -46,7 +46,7 @@ type GameStatus
 
 type alias Model =
     { word : Word
-    , guesses : GuessList
+    , guesses : Guesses
     , guessInput : GuessInput
     , currentGuess : Int
     , gameStatus : GameStatus
@@ -60,7 +60,7 @@ init =
         initWord =
             "plane"
 
-        initGuesses : GuessList
+        initGuesses : Guesses
         initGuesses =
             List.map (\guess -> NoGuess (getFeedback guess initWord)) [ "grams", "spade", "place" ]
                 |> Array.fromList
@@ -252,9 +252,9 @@ update msg model =
             case simplifyFeedback guessFeedback == simplifyFeedback currentGuessFeedback of
                 True ->
                     let
-                        nextGuessList : GuessList
-                        nextGuessList =
-                            updateGuessList (guessInputToString model.guessInput) (getFeedback (guessInputToString model.guessInput) model.word) model.currentGuess model.guesses
+                        nextGuesses : Guesses
+                        nextGuesses =
+                            updateGuesses (guessInputToString model.guessInput) (getFeedback (guessInputToString model.guessInput) model.word) model.currentGuess model.guesses
 
                         nextGameStatus : GameStatus
                         nextGameStatus =
@@ -271,7 +271,7 @@ update msg model =
                                             Solution _ ->
                                                 False
                                     )
-                                    nextGuessList
+                                    nextGuesses
                                     |> Array.length
                                 )
                                     == 0
@@ -282,7 +282,7 @@ update msg model =
                                 Active
                     in
                     { model
-                        | guesses = nextGuessList
+                        | guesses = nextGuesses
                         , guessInput = GuessInput ""
                         , currentGuess = model.currentGuess - 1
                         , gameStatus = nextGameStatus
@@ -301,8 +301,8 @@ update msg model =
             init
 
 
-updateGuessList : Word -> Feedback -> Int -> GuessList -> GuessList
-updateGuessList guess feedback i guesses =
+updateGuesses : Word -> Feedback -> Int -> Guesses -> Guesses
+updateGuesses guess feedback i guesses =
     Array.set i (Guess guess feedback) guesses
 
 
