@@ -39,11 +39,16 @@ type GuessInput
     | RejectedInput String Feedback
 
 
+type GameStatus
+    = Active
+
+
 type alias Model =
     { word : Word
     , guesses : GuessList
     , guessInput : GuessInput
     , currentGuess : Int
+    , gameStatus : GameStatus
     }
 
 
@@ -63,6 +68,7 @@ init =
     , guesses = Array.push (Solution initWord (getFeedback initWord initWord)) initGuesses
     , guessInput = GuessInput ""
     , currentGuess = Array.length initGuesses - 1
+    , gameStatus = Active
     }
 
 
