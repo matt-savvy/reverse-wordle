@@ -316,11 +316,15 @@ view model =
         getIsSelected : Int -> Bool
         getIsSelected index =
             (index == model.currentGuess) && (model.gameStatus /= Solved)
+
+        guessList : List Guess
+        guessList =
+            Array.toList model.guesses
     in
     div [ style "font-size" "20px" ]
         [ h1 [] [ text "Reverse Wordle" ]
         , div [ style "width" "fit-content" ]
-            (List.indexedMap (\i guess -> viewGuess (getIsSelected i) i guess) (Array.toList model.guesses))
+            (List.indexedMap (\i guess -> viewGuess (getIsSelected i) i guess) guessList)
         , button [ onClick ClickedReset ] [ text "reset" ]
         , if model.gameStatus == Solved then
             h2 [] [ text "you did it!" ]
