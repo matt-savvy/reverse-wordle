@@ -331,11 +331,11 @@ formatFeedback guess feedback =
 
 
 viewGuess : Bool -> Int -> Guess -> Html Msg
-viewGuess isCurrentGuess index guess =
+viewGuess isSelected index guess =
     case guess of
         Guess word feedback ->
             div
-                (if isCurrentGuess then
+                (if isSelected then
                     [ style "border" "1px solid black" ]
 
                  else
@@ -348,7 +348,7 @@ viewGuess isCurrentGuess index guess =
 
         NoGuess feedback ->
             div
-                (if isCurrentGuess then
+                (if isSelected then
                     [ style "border" "1px solid black" ]
 
                  else
