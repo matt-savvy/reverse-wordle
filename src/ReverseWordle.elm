@@ -438,7 +438,7 @@ viewWordInput model =
                     []
                 ]
 
-        RejectedInput guessInput _ ->
+        RejectedInput guessInput feedback ->
             form
                 [ onSubmit (GotWord guessInput) ]
                 [ input
@@ -446,6 +446,6 @@ viewWordInput model =
                     []
                 , div []
                     [ text "This guess could not be correct. Your guess would look like this :"
-                    , div [] (List.map viewChar (formatFeedback guessInput (getFeedback guessInput model.word)))
+                    , div [] (List.map viewChar (formatFeedback guessInput feedback))
                     ]
                 ]
