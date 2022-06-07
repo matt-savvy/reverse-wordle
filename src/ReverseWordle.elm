@@ -379,7 +379,7 @@ viewGuess isSelected index guess =
                     [ style "border" "1px solid black" ]
 
                  else
-                    [ onClick (ClickedGuess index) ]
+                    [ style "border" "1px solid transparent", onClick (ClickedGuess index) ]
                 )
                 (List.map viewChar (formatFeedback word feedback))
 
@@ -392,7 +392,7 @@ viewGuess isSelected index guess =
                     [ style "border" "1px solid black" ]
 
                  else
-                    [ onClick (ClickedGuess index) ]
+                    [ style "border" "1px solid transparent", onClick (ClickedGuess index) ]
                 )
                 (List.map viewChar (formatFeedback "     " feedback))
 
