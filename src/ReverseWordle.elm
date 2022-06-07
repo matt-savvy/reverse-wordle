@@ -40,12 +40,8 @@ type WordInput
 
 
 type GameStatus
-    = Active Selection
+    = Active Int
     | Solved
-
-
-type Selection
-    = SelectedIndex Int
 
 
 type alias Model =
@@ -71,7 +67,7 @@ init =
     { word = initWord
     , guesses = initGuesses
     , guessInput = WordInput ""
-    , gameStatus = Active (SelectedIndex (Array.length initGuesses - 1))
+    , gameStatus = Active (Array.length initGuesses - 1)
     }
 
 
@@ -222,7 +218,7 @@ update msg model =
                     -- shouldn't really be able to get a guess while solved
                     model
 
-                Active (SelectedIndex index) ->
+                Active index ->
                     let
                         guessFeedback : Feedback
                         guessFeedback =
@@ -284,7 +280,7 @@ update msg model =
                                     Solved
 
                                 else
-                                    Active (SelectedIndex (index - 1))
+                                    Active (index - 1)
                         in
                         { model
                             | guesses = nextGuesses
@@ -298,7 +294,7 @@ update msg model =
         ClickedGuess i ->
             case model.gameStatus of
                 Active _ ->
-                    { model | gameStatus = Active (SelectedIndex i) }
+                    { model | gameStatus = Active i }
 
                 Solved ->
                     model
@@ -322,7 +318,7 @@ view model =
         getIsSelected : Int -> Bool
         getIsSelected index =
             case model.gameStatus of
-                Active (SelectedIndex selectedIndex) ->
+                Active selectedIndex ->
                     index == selectedIndex
 
                 Solved ->
