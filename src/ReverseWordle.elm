@@ -258,46 +258,46 @@ update msg model =
                                     -- this could happen if the selection index goes below zero
                                     Dict.empty
                     in
-                    case simplifyFeedback guessFeedback == simplifyFeedback selectionFeedback of
-                        True ->
-                            let
-                                nextGuesses : Guesses
-                                nextGuesses =
-                                    updateGuesses (guessInputToString model.guessInput) (getFeedback (guessInputToString model.guessInput) model.word) model.gameStatus model.guesses
+                    if simplifyFeedback guessFeedback /= simplifyFeedback selectionFeedback then
+                        { model | guessInput = RejectedInput (guessInputToString model.guessInput) guessFeedback }
 
-                                nextGameStatus : GameStatus
-                                nextGameStatus =
-                                    if
-                                        (Array.filter
-                                            (\guess ->
-                                                case guess of
-                                                    NoGuess _ ->
-                                                        True
+                    else
+                        let
+                            nextGuesses : Guesses
+                            nextGuesses =
+                                updateGuesses (guessInputToString model.guessInput) (getFeedback (guessInputToString model.guessInput) model.word) model.gameStatus model.guesses
 
-                                                    Guess _ _ ->
-                                                        False
+                            nextGameStatus : GameStatus
+                            nextGameStatus =
+                                if
+                                    (Array.filter
+                                        (\guess ->
+                                            case guess of
+                                                NoGuess _ ->
+                                                    True
 
-                                                    Solution _ ->
-                                                        False
-                                            )
-                                            nextGuesses
-                                            |> Array.length
+                                                Guess _ _ ->
+                                                    False
+
+                                                Solution _ ->
+                                                    False
                                         )
-                                            == 0
-                                    then
-                                        Solved
+                                        nextGuesses
+                                        |> Array.length
+                                    )
+                                        == 0
+                                then
+                                    Solved
 
-                                    else
-                                        Active (SelectedIndex (index - 1))
-                            in
-                            { model
-                                | guesses = nextGuesses
-                                , guessInput = GuessInput ""
-                                , gameStatus = nextGameStatus
-                            }
+                                else
+                                    Active (SelectedIndex (index - 1))
+                        in
+                        { model
+                            | guesses = nextGuesses
+                            , guessInput = GuessInput ""
+                            , gameStatus = nextGameStatus
+                        }
 
-                        False ->
-                            { model | guessInput = RejectedInput (guessInputToString model.guessInput) guessFeedback }
 
         GuessInputChanged guessText ->
             { model | guessInput = GuessInput (guessText |> String.toLower |> String.filter Char.isAlpha) }
