@@ -429,23 +429,21 @@ viewChar ( feedback, char ) =
 
 viewWordInput : Model -> Html Msg
 viewWordInput model =
-    case model.guessInput of
-        WordInput guessInput ->
+    let
+        viewInput : String -> Html Msg
+        viewInput wordInput =
             form
-                [ onSubmit (GotWord guessInput) ]
-                [ input
-                    [ type_ "text", value guessInput, onInput WordInputChanged, maxlength 5, minlength 5 ]
-                    []
+                [ onSubmit (GotWord wordInput) ]
+                [ input [ type_ "text", value wordInput, onInput WordInputChanged, maxlength 5, minlength 5 ] []
                 ]
+    in
+    case model.guessInput of
+        WordInput wordInput ->
+            div [] [ viewInput wordInput ]
 
-        RejectedInput guessInput feedback ->
-            form
-                [ onSubmit (GotWord guessInput) ]
-                [ input
-                    [ type_ "text", value guessInput, onInput WordInputChanged, maxlength 5, minlength 5 ]
-                    []
-                , div []
-                    [ text "This guess could not be correct. Your guess would look like this :"
-                    , div [] (List.map viewChar (formatFeedback guessInput feedback))
-                    ]
+        RejectedInput wordInput feedback ->
+            div []
+                [ viewInput wordInput
+                , text "This guess could not be correct. Your guess would look like this :"
+                , div [] (List.map viewChar (formatFeedback wordInput feedback))
                 ]
