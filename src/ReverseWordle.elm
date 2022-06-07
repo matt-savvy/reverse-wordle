@@ -46,8 +46,6 @@ type GameStatus
 
 type Selection
     = SelectedIndex Int
-      -- | SelectedSolution
-    | NoSelection
 
 
 type alias Model =
@@ -241,9 +239,6 @@ update msg model =
                         Active (SelectedIndex index) ->
                             Array.get index model.guesses
 
-                        Active _ ->
-                            Nothing
-
                         Solved ->
                             Nothing
 
@@ -296,9 +291,6 @@ update msg model =
                                     Active (SelectedIndex index) ->
                                         Active (SelectedIndex (index - 1))
 
-                                    Active NoSelection ->
-                                        Active NoSelection
-
                                     Solved ->
                                         Solved
                     in
@@ -332,9 +324,6 @@ updateGuesses guess feedback gameStatus guesses =
         Active (SelectedIndex index) ->
             Array.set index (Guess guess feedback) guesses
 
-        Active NoSelection ->
-            guesses
-
         Solved ->
             guesses
 
@@ -351,9 +340,6 @@ view model =
             case model.gameStatus of
                 Active (SelectedIndex selectedIndex) ->
                     index == selectedIndex
-
-                Active NoSelection ->
-                    False
 
                 Solved ->
                     False
