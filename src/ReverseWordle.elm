@@ -189,7 +189,7 @@ createWordDict word =
 
 
 type Msg
-    = GotGuess
+    = GotWord
     | GuessInputChanged String
     | ClickedGuess Int
     | ClickedReset
@@ -226,7 +226,7 @@ guessInputToString guessInput =
 update : Msg -> Model -> Model
 update msg model =
     case msg of
-        GotGuess ->
+        GotWord ->
             case model.gameStatus of
                 Solved ->
                     -- shouldn't really be able to get a guess while solved
@@ -423,7 +423,7 @@ viewGuessInput model =
     case model.guessInput of
         GuessInput guessInput ->
             form
-                [ onSubmit GotGuess ]
+                [ onSubmit GotWord ]
                 [ input
                     [ type_ "text", value guessInput, onInput GuessInputChanged, maxlength 5, minlength 5 ]
                     []
@@ -431,7 +431,7 @@ viewGuessInput model =
 
         RejectedInput guessInput _ ->
             form
-                [ onSubmit GotGuess ]
+                [ onSubmit GotWord ]
                 [ input
                     [ type_ "text", value guessInput, onInput GuessInputChanged, maxlength 5, minlength 5 ]
                     []
