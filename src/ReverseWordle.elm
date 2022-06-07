@@ -34,8 +34,8 @@ type alias Guesses =
     Array Guess
 
 
-type GuessInput
-    = GuessInput String
+type WordInput
+    = WordInput String
     | RejectedInput String Feedback
 
 
@@ -51,7 +51,7 @@ type Selection
 type alias Model =
     { word : Word
     , guesses : Guesses
-    , guessInput : GuessInput
+    , guessInput : WordInput
     , gameStatus : GameStatus
     }
 
@@ -70,7 +70,7 @@ init =
     in
     { word = initWord
     , guesses = initGuesses
-    , guessInput = GuessInput ""
+    , guessInput = WordInput ""
     , gameStatus = Active (SelectedIndex (Array.length initGuesses - 1))
     }
 
@@ -190,7 +190,7 @@ createWordDict word =
 
 type Msg
     = GotWord String
-    | GuessInputChanged String
+    | WordInputChanged String
     | ClickedGuess Int
     | ClickedReset
 
@@ -288,12 +288,12 @@ update msg model =
                         in
                         { model
                             | guesses = nextGuesses
-                            , guessInput = GuessInput ""
+                            , guessInput = WordInput ""
                             , gameStatus = nextGameStatus
                         }
 
-        GuessInputChanged guessText ->
-            { model | guessInput = GuessInput (guessText |> String.toLower |> String.filter Char.isAlpha) }
+        WordInputChanged guessText ->
+            { model | guessInput = WordInput (guessText |> String.toLower |> String.filter Char.isAlpha) }
 
         ClickedGuess i ->
             case model.gameStatus of
@@ -341,7 +341,7 @@ view model =
             h2 [] [ text "you did it!" ]
 
           else
-            viewGuessInput model
+            viewWordInput model
         ]
 
 
@@ -408,14 +408,14 @@ viewChar ( feedback, char ) =
         [ text (String.fromChar char |> String.toUpper) ]
 
 
-viewGuessInput : Model -> Html Msg
-viewGuessInput model =
+viewWordInput : Model -> Html Msg
+viewWordInput model =
     case model.guessInput of
-        GuessInput guessInput ->
+        WordInput guessInput ->
             form
                 [ onSubmit (GotWord guessInput) ]
                 [ input
-                    [ type_ "text", value guessInput, onInput GuessInputChanged, maxlength 5, minlength 5 ]
+                    [ type_ "text", value guessInput, onInput WordInputChanged, maxlength 5, minlength 5 ]
                     []
                 ]
 
@@ -423,7 +423,7 @@ viewGuessInput model =
             form
                 [ onSubmit (GotWord guessInput) ]
                 [ input
-                    [ type_ "text", value guessInput, onInput GuessInputChanged, maxlength 5, minlength 5 ]
+                    [ type_ "text", value guessInput, onInput WordInputChanged, maxlength 5, minlength 5 ]
                     []
                 , div []
                     [ text "This guess could not be correct. Your guess would look like this :"
