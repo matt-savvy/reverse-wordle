@@ -259,28 +259,11 @@ update msg model =
 
                             nextGameStatus : GameStatus
                             nextGameStatus =
-                                if
-                                    (Array.filter
-                                        (\guess ->
-                                            case guess of
-                                                NoGuess _ ->
-                                                    True
-
-                                                Guess _ _ ->
-                                                    False
-
-                                                Solution _ ->
-                                                    False
-                                        )
-                                        nextGuesses
-                                        |> Array.length
-                                    )
-                                        == 0
-                                then
+                                if isSolved nextGuesses then
                                     Solved
 
                                 else
-                                    Active (index - 1)
+                                    Active (getNextIndex index nextGuesses)
                         in
                         { model
                             | guesses = nextGuesses
@@ -301,6 +284,41 @@ update msg model =
 
         ClickedReset ->
             init
+
+
+isSolved : Guesses -> Bool
+isSolved guesses =
+    let
+        isNoGuess : Guess -> Bool
+        isNoGuess guess =
+            case guess of
+                NoGuess _ ->
+                    True
+
+                _ ->
+                    False
+    in
+    Array.isEmpty (Array.filter isNoGuess guesses)
+
+
+getNextIndex : Int -> Guesses -> Int
+getNextIndex currentIndex guesses =
+    if isSolved guesses then
+        Array.length guesses - 1
+
+    else
+        case Array.get currentIndex guesses of
+            Just (NoGuess _) ->
+                currentIndex
+
+            Just (Solution _) ->
+                getNextIndex (currentIndex - 1) guesses
+
+            Just (Guess _ _) ->
+                getNextIndex (currentIndex - 1) guesses
+
+            Nothing ->
+                getNextIndex (Array.length guesses - 1) guesses
 
 
 updateGuesses : Word -> Feedback -> Int -> Guesses -> Guesses
