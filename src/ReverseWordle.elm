@@ -39,8 +39,12 @@ type WordInput
     | RejectedInput String Feedback
 
 
+type alias SelectionIndex =
+    Int
+
+
 type GameStatus
-    = Active Int
+    = Active SelectionIndex
     | Solved
 
 
