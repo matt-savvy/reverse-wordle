@@ -40,13 +40,13 @@ type GuessInput
 
 
 type GameStatus
-    = Active
+    = Active Selection
     | Solved
 
 
 type Selection
     = SelectedIndex Int
-    | SelectedSolution
+      -- | SelectedSolution
     | NoSelection
 
 
@@ -54,7 +54,6 @@ type alias Model =
     { word : Word
     , guesses : Guesses
     , guessInput : GuessInput
-    , selection : Selection
     , gameStatus : GameStatus
     }
 
@@ -74,8 +73,7 @@ init =
     { word = initWord
     , guesses = initGuesses
     , guessInput = GuessInput ""
-    , selection = SelectedIndex (Array.length initGuesses - 1)
-    , gameStatus = Active
+    , gameStatus = Active (SelectedIndex (Array.length initGuesses - 1))
     }
 
 
@@ -239,14 +237,14 @@ update msg model =
 
                 selectedGuess : Maybe Guess
                 selectedGuess =
-                    case model.selection of
-                        SelectedIndex index ->
+                    case model.gameStatus of
+                        Active (SelectedIndex index) ->
                             Array.get index model.guesses
 
-                        SelectedSolution ->
+                        Active _ ->
                             Nothing
 
-                        NoSelection ->
+                        Solved ->
                             Nothing
 
                 selectionFeedback : Feedback
@@ -269,7 +267,7 @@ update msg model =
                     let
                         nextGuesses : Guesses
                         nextGuesses =
-                            updateGuesses (guessInputToString model.guessInput) (getFeedback (guessInputToString model.guessInput) model.word) model.selection model.guesses
+                            updateGuesses (guessInputToString model.guessInput) (getFeedback (guessInputToString model.guessInput) model.word) model.gameStatus model.guesses
 
                         nextGameStatus : GameStatus
                         nextGameStatus =
@@ -294,26 +292,19 @@ update msg model =
                                 Solved
 
                             else
-                                Active
+                                case model.gameStatus of
+                                    Active (SelectedIndex index) ->
+                                        Active (SelectedIndex (index - 1))
 
-                        nextSelection : Selection
-                        nextSelection =
-                            case model.selection of
-                                SelectedIndex index ->
-                                    SelectedIndex (index - 1)
+                                    Active NoSelection ->
+                                        Active NoSelection
 
-                                _ ->
-                                    model.selection
+                                    Solved ->
+                                        Solved
                     in
                     { model
                         | guesses = nextGuesses
                         , guessInput = GuessInput ""
-                        , selection =
-                            if nextGameStatus == Solved then
-                                NoSelection
-
-                            else
-                                nextSelection
                         , gameStatus = nextGameStatus
                     }
 
@@ -325,8 +316,8 @@ update msg model =
 
         ClickedGuess i ->
             case model.gameStatus of
-                Active ->
-                    { model | selection = SelectedIndex i }
+                Active _ ->
+                    { model | gameStatus = Active (SelectedIndex i) }
 
                 Solved ->
                     model
@@ -335,16 +326,16 @@ update msg model =
             init
 
 
-updateGuesses : Word -> Feedback -> Selection -> Guesses -> Guesses
-updateGuesses guess feedback selection guesses =
-    case selection of
-        SelectedIndex index ->
+updateGuesses : Word -> Feedback -> GameStatus -> Guesses -> Guesses
+updateGuesses guess feedback gameStatus guesses =
+    case gameStatus of
+        Active (SelectedIndex index) ->
             Array.set index (Guess guess feedback) guesses
 
-        SelectedSolution ->
+        Active NoSelection ->
             guesses
 
-        NoSelection ->
+        Solved ->
             guesses
 
 
@@ -357,14 +348,14 @@ view model =
     let
         getIsSelected : Int -> Bool
         getIsSelected index =
-            case model.selection of
-                SelectedIndex selectedIndex ->
+            case model.gameStatus of
+                Active (SelectedIndex selectedIndex) ->
                     index == selectedIndex
 
-                SelectedSolution ->
+                Active NoSelection ->
                     False
 
-                NoSelection ->
+                Solved ->
                     False
 
         guessList : List Guess
