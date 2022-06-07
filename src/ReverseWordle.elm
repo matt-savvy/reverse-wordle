@@ -24,6 +24,21 @@ main =
 -- MODEL
 
 
+type alias Word =
+    String
+
+
+type CharFeedback
+    = NotInWord
+    | Incorrect
+    | InWord
+    | Correct
+
+
+type alias Feedback =
+    Dict Int CharFeedback
+
+
 type Guess
     = Guess Word Feedback
     | NoGuess Feedback
@@ -73,21 +88,6 @@ init =
     , guessInput = WordInput ""
     , gameStatus = Active (Array.length initGuesses - 1)
     }
-
-
-type alias Word =
-    String
-
-
-type CharFeedback
-    = NotInWord
-    | Incorrect
-    | InWord
-    | Correct
-
-
-type alias Feedback =
-    Dict Int CharFeedback
 
 
 getFeedback : Word -> Word -> Dict Int CharFeedback
