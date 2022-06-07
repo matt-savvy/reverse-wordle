@@ -189,7 +189,7 @@ createWordDict word =
 
 
 type Msg
-    = GotWord
+    = GotWord String
     | GuessInputChanged String
     | ClickedGuess Int
     | ClickedReset
@@ -213,20 +213,10 @@ simplifyFeedback feedback =
         |> Debug.log "f"
 
 
-guessInputToString : GuessInput -> String
-guessInputToString guessInput =
-    case guessInput of
-        GuessInput str ->
-            str
-
-        RejectedInput str _ ->
-            str
-
-
 update : Msg -> Model -> Model
 update msg model =
     case msg of
-        GotWord ->
+        GotWord wordInput ->
             case model.gameStatus of
                 Solved ->
                     -- shouldn't really be able to get a guess while solved
@@ -236,7 +226,7 @@ update msg model =
                     let
                         guessFeedback : Feedback
                         guessFeedback =
-                            getFeedback (guessInputToString model.guessInput) model.word
+                            getFeedback wordInput model.word
 
                         selectedGuess : Maybe Guess
                         selectedGuess =
@@ -259,15 +249,15 @@ update msg model =
                                     Dict.empty
                     in
                     if simplifyFeedback guessFeedback /= simplifyFeedback selectionFeedback then
-                        { model | guessInput = RejectedInput (guessInputToString model.guessInput) guessFeedback }
+                        { model | guessInput = RejectedInput wordInput guessFeedback }
 
                     else
                         let
                             nextGuesses : Guesses
                             nextGuesses =
                                 updateGuesses
-                                    (guessInputToString model.guessInput)
-                                    (getFeedback (guessInputToString model.guessInput) model.word)
+                                    wordInput
+                                    (getFeedback wordInput model.word)
                                     index
                                     model.guesses
 
@@ -423,7 +413,7 @@ viewGuessInput model =
     case model.guessInput of
         GuessInput guessInput ->
             form
-                [ onSubmit GotWord ]
+                [ onSubmit (GotWord guessInput) ]
                 [ input
                     [ type_ "text", value guessInput, onInput GuessInputChanged, maxlength 5, minlength 5 ]
                     []
@@ -431,7 +421,7 @@ viewGuessInput model =
 
         RejectedInput guessInput _ ->
             form
-                [ onSubmit GotWord ]
+                [ onSubmit (GotWord guessInput) ]
                 [ input
                     [ type_ "text", value guessInput, onInput GuessInputChanged, maxlength 5, minlength 5 ]
                     []
