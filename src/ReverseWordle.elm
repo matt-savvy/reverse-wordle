@@ -272,7 +272,12 @@ update msg model =
                         }
 
         WordInputChanged guessText ->
-            { model | guessInput = WordInput (guessText |> String.toLower |> String.filter Char.isAlpha) }
+            let
+                cleanInput : String -> String
+                cleanInput str =
+                    str |> String.toLower |> String.filter Char.isAlpha
+            in
+            { model | guessInput = WordInput (cleanInput guessText) }
 
         ClickedGuess i ->
             case model.gameStatus of
