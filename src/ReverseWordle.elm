@@ -265,7 +265,11 @@ update msg model =
                         let
                             nextGuesses : Guesses
                             nextGuesses =
-                                updateGuesses (guessInputToString model.guessInput) (getFeedback (guessInputToString model.guessInput) model.word) model.gameStatus model.guesses
+                                updateGuesses
+                                    (guessInputToString model.guessInput)
+                                    (getFeedback (guessInputToString model.guessInput) model.word)
+                                    index
+                                    model.guesses
 
                             nextGameStatus : GameStatus
                             nextGameStatus =
@@ -298,7 +302,6 @@ update msg model =
                             , gameStatus = nextGameStatus
                         }
 
-
         GuessInputChanged guessText ->
             { model | guessInput = GuessInput (guessText |> String.toLower |> String.filter Char.isAlpha) }
 
@@ -314,14 +317,9 @@ update msg model =
             init
 
 
-updateGuesses : Word -> Feedback -> GameStatus -> Guesses -> Guesses
-updateGuesses guess feedback gameStatus guesses =
-    case gameStatus of
-        Active (SelectedIndex index) ->
-            Array.set index (Guess guess feedback) guesses
-
-        Solved ->
-            guesses
+updateGuesses : Word -> Feedback -> Int -> Guesses -> Guesses
+updateGuesses guess feedback index guesses =
+    Array.set index (Guess guess feedback) guesses
 
 
 
