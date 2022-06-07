@@ -41,12 +41,12 @@ type alias Feedback =
 
 type Guess
     = Guess Word Feedback
-    | NoGuess Feedback
+    | NoGuess
     | Solution Word
 
 
 type alias Guesses =
-    Array Guess
+    Array ( Guess, Feedback )
 
 
 type WordInput
@@ -80,7 +80,8 @@ init =
 
         initGuesses : Guesses
         initGuesses =
-            List.map (\guess -> NoGuess (getFeedback guess initWord)) [ "grams", "spade", "place" ]
+            List.map (\guess -> getFeedback guess initWord) [ "grams", "spade", "place" ]
+                |> List.map (Tuple.pair NoGuess)
                 |> Array.fromList
     in
     { word = initWord
@@ -228,27 +229,17 @@ update msg model =
                         guessFeedback =
                             getFeedback wordInput model.word
 
-                        selectedGuess : Maybe Guess
-                        selectedGuess =
-                            Array.get index model.guesses
-
-                        selectionFeedback : Feedback
-                        selectionFeedback =
-                            case selectedGuess of
-                                Just (NoGuess feedback) ->
+                        targetFeedback : Feedback
+                        targetFeedback =
+                            case Array.get index model.guesses of
+                                Just ( _, feedback ) ->
                                     feedback
-
-                                Just (Guess word feedback) ->
-                                    feedback
-
-                                Just (Solution word) ->
-                                    getFeedback word word
 
                                 Nothing ->
-                                    -- this could happen if the selection index goes below zero
+                                    -- this could only happen if the selection index gets messed up
                                     Dict.empty
                     in
-                    if simplifyFeedback guessFeedback /= simplifyFeedback selectionFeedback then
+                    if simplifyFeedback guessFeedback /= simplifyFeedback targetFeedback then
                         { model | guessInput = RejectedInput wordInput guessFeedback }
 
                     else
@@ -298,10 +289,10 @@ update msg model =
 isSolved : Guesses -> Bool
 isSolved guesses =
     let
-        isNoGuess : Guess -> Bool
-        isNoGuess guess =
+        isNoGuess : ( Guess, Feedback ) -> Bool
+        isNoGuess ( guess, _ ) =
             case guess of
-                NoGuess _ ->
+                NoGuess ->
                     True
 
                 _ ->
@@ -317,13 +308,10 @@ getNextIndex currentIndex guesses =
 
     else
         case Array.get currentIndex guesses of
-            Just (NoGuess _) ->
+            Just ( NoGuess, _ ) ->
                 currentIndex
 
-            Just (Solution _) ->
-                getNextIndex (currentIndex - 1) guesses
-
-            Just (Guess _ _) ->
+            Just ( _, _ ) ->
                 getNextIndex (currentIndex - 1) guesses
 
             Nothing ->
@@ -332,11 +320,22 @@ getNextIndex currentIndex guesses =
 
 updateGuesses : Word -> Feedback -> Int -> Guesses -> Guesses
 updateGuesses guess feedback index guesses =
-    Array.set index (Guess guess feedback) guesses
+    Array.get index guesses
+        |> Maybe.withDefault ( NoGuess, Dict.empty )
+        |> (\( _, existingFeedback ) ->
+                Array.set index ( Guess guess feedback, existingFeedback ) guesses
+           )
 
 
 
 -- VIEW
+
+
+solutionFeedback : Feedback
+solutionFeedback =
+    List.repeat 5 Correct
+        |> List.indexedMap Tuple.pair
+        |> Dict.fromList
 
 
 view : Model -> Html Msg
@@ -351,14 +350,14 @@ view model =
                 Solved ->
                     False
 
-        guessList : List Guess
+        guessList : List ( Guess, Feedback )
         guessList =
-            Array.toList (Array.push (Solution model.word) model.guesses)
+            Array.toList (Array.push ( Solution model.word, solutionFeedback ) model.guesses)
     in
     div [ style "font-size" "20px" ]
         [ h1 [] [ text "Reverse Wordle" ]
         , div [ style "width" "fit-content" ]
-            (List.indexedMap (\i guess -> viewGuess (getIsSelected i) i guess) guessList)
+            (List.indexedMap (\i ( guess, feedback ) -> viewGuess (getIsSelected i) i guess feedback) guessList)
         , button [ onClick ClickedReset ] [ text "reset" ]
         , if model.gameStatus == Solved then
             h2 [] [ text "you did it!" ]
@@ -374,10 +373,10 @@ formatFeedback guess feedback =
         |> List.map2 Tuple.pair (Dict.values feedback)
 
 
-viewGuess : Bool -> Int -> Guess -> Html Msg
-viewGuess isSelected index guess =
+viewGuess : Bool -> Int -> Guess -> Feedback -> Html Msg
+viewGuess isSelected index guess feedback =
     case guess of
-        Guess word feedback ->
+        Guess word _ ->
             div
                 (if isSelected then
                     [ style "border" "1px solid black" ]
@@ -390,7 +389,7 @@ viewGuess isSelected index guess =
         Solution word ->
             div [] (List.map viewChar (List.map2 Tuple.pair (List.repeat 5 Correct) (String.toList word)))
 
-        NoGuess feedback ->
+        NoGuess ->
             div
                 (if isSelected then
                     [ style "border" "1px solid black" ]
