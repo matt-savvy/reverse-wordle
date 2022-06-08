@@ -186,6 +186,7 @@ type Msg
     | ClickedGuess Int Int
     | ClickedReset
     | ClickedAddGuess
+    | ClickedRemoveGuess SelectionIndex
 
 
 simplifyFeedback : Feedback -> Feedback
@@ -294,9 +295,19 @@ update msg model =
         ClickedAddGuess ->
             { model | guesses = Array.slice 0 5 (Array.push ( NoGuess, initFeedback ) model.guesses) }
 
+        ClickedRemoveGuess i ->
+            { model | guesses = removeAtIndex i model.guesses }
+
         ClickedReset ->
             -- TODO handle what mode we're in
             init
+
+
+removeAtIndex : Int -> Array a -> Array a
+removeAtIndex index arr =
+    Array.append
+        (Array.slice 0 index arr)
+        (Array.slice (index + 1) (Array.length arr) arr)
 
 
 isSolved : Guesses -> Bool
@@ -409,7 +420,7 @@ view model =
     div [ style "font-size" "20px" ]
         [ h1 [] [ text "Reverse Wordle" ]
         , div [ style "width" "fit-content" ]
-            (List.indexedMap (\i ( guess, feedback ) -> viewGuess (getIsSelected i) i guess feedback) guessList)
+            (List.indexedMap (\i ( guess, feedback ) -> viewGuess (getIsSelected i) i guess feedback model.gameStatus) guessList)
         , button [ onClick ClickedReset ] [ text "reset" ]
         , case model.gameStatus of
             Solved ->
@@ -432,8 +443,8 @@ formatFeedback guess feedback =
         |> List.map2 Tuple.pair (Dict.values feedback)
 
 
-viewGuess : Bool -> Int -> Guess -> Feedback -> Html Msg
-viewGuess isSelected index guess feedback =
+viewGuess : Bool -> Int -> Guess -> Feedback -> GameStatus -> Html Msg
+viewGuess isSelected index guess feedback gameStatus =
     let
         viewG : Word -> Html Msg
         viewG word =
@@ -448,10 +459,15 @@ viewGuess isSelected index guess feedback =
     in
     case guess of
         Guess word _ ->
-            viewG word
+            div [] [ viewG word ]
 
         NoGuess ->
-            viewG "     "
+            case gameStatus of
+                SetupGuesses ->
+                    div [ style "display" "flex" ] [ viewG "     ", button [ onClick (ClickedRemoveGuess index) ] [ text "x" ] ]
+
+                _ ->
+                    div [] [ viewG "     " ]
 
         Solution word ->
             div [] (List.indexedMap (viewChar index) (formatFeedback word feedback))
