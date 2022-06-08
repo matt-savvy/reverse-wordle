@@ -61,6 +61,7 @@ type alias SelectionIndex =
 type GameStatus
     = Active SelectionIndex
     | Solved
+    | Setup
 
 
 type alias Model =
@@ -229,6 +230,9 @@ update msg model =
     case msg of
         GotWord wordInput ->
             case model.gameStatus of
+                Setup ->
+                    { model | word = wordInput }
+
                 Solved ->
                     -- shouldn't really be able to get a guess while solved
                     model
@@ -280,6 +284,9 @@ update msg model =
 
         ClickedGuess i ->
             case model.gameStatus of
+                Setup ->
+                    model
+
                 Active _ ->
                     { model | gameStatus = Active i }
 
@@ -348,6 +355,9 @@ view model =
         getIsSelected : Int -> Bool
         getIsSelected index =
             case model.gameStatus of
+                Setup ->
+                    False
+
                 Active selectedIndex ->
                     index == selectedIndex
 
