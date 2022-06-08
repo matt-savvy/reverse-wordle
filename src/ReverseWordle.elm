@@ -3,8 +3,8 @@ module ReverseWordle exposing (..)
 import Array exposing (Array)
 import Browser
 import Dict exposing (Dict)
-import Html exposing (Html, button, div, form, h1, h2, input, span, text, ul)
-import Html.Attributes exposing (maxlength, minlength, style, type_, value, required)
+import Html exposing (Html, button, div, form, h1, h2, input, label, span, text, ul)
+import Html.Attributes exposing (disabled, maxlength, minlength, required, style, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
 
 
@@ -61,7 +61,8 @@ type alias SelectionIndex =
 type GameStatus
     = Active SelectionIndex
     | Solved
-    | Setup
+    | SetupWord
+    | SetupGuesses
 
 
 type alias Model =
@@ -74,21 +75,10 @@ type alias Model =
 
 init : Model
 init =
-    let
-        initWord : Word
-        initWord =
-            "plane"
-
-        initGuesses : Guesses
-        initGuesses =
-            List.map (\guess -> getFeedback guess initWord) [ "grams", "spade", "place" ]
-                |> List.map (Tuple.pair NoGuess)
-                |> Array.fromList
-    in
-    { word = initWord
-    , guesses = initGuesses
+    { word = ""
+    , guesses = Array.repeat 5 ( NoGuess, initFeedback )
     , guessInput = WordInput ""
-    , gameStatus = Active (Array.length initGuesses - 1)
+    , gameStatus = SetupWord
     }
 
 
@@ -195,6 +185,7 @@ type Msg
     | WordInputChanged String
     | ClickedGuess Int
     | ClickedReset
+    | ClickedAddGuess
 
 
 simplifyFeedback : Feedback -> Feedback
@@ -230,8 +221,12 @@ update msg model =
     case msg of
         GotWord wordInput ->
             case model.gameStatus of
-                Setup ->
-                    { model | word = wordInput }
+                SetupWord ->
+                    { model | word = wordInput, gameStatus = SetupGuesses }
+
+                SetupGuesses ->
+                    -- shouldn't really be able to get a guess while solved
+                    model
 
                 Solved ->
                     -- shouldn't really be able to get a guess while solved
@@ -284,8 +279,11 @@ update msg model =
 
         ClickedGuess i ->
             case model.gameStatus of
-                Setup ->
+                SetupWord ->
                     model
+
+                SetupGuesses ->
+                    Debug.todo "update the guess feedback"
 
                 Active _ ->
                     { model | gameStatus = Active i }
@@ -293,7 +291,11 @@ update msg model =
                 Solved ->
                     model
 
+        ClickedAddGuess ->
+            { model | guesses = Array.slice 0 5 (Array.push ( NoGuess, initFeedback ) model.guesses) }
+
         ClickedReset ->
+            -- TODO handle what mode we're in
             init
 
 
@@ -342,6 +344,13 @@ updateGuesses guess feedback index guesses =
 -- VIEW
 
 
+initFeedback : Feedback
+initFeedback =
+    List.repeat 5 Incorrect
+        |> List.indexedMap Tuple.pair
+        |> Dict.fromList
+
+
 solutionFeedback : Feedback
 solutionFeedback =
     List.repeat 5 Correct
@@ -355,7 +364,10 @@ view model =
         getIsSelected : Int -> Bool
         getIsSelected index =
             case model.gameStatus of
-                Setup ->
+                SetupWord ->
+                    False
+
+                SetupGuesses ->
                     False
 
                 Active selectedIndex ->
@@ -373,11 +385,18 @@ view model =
         , div [ style "width" "fit-content" ]
             (List.indexedMap (\i ( guess, feedback ) -> viewGuess (getIsSelected i) i guess feedback) guessList)
         , button [ onClick ClickedReset ] [ text "reset" ]
-        , if model.gameStatus == Solved then
-            h2 [] [ text "you did it!" ]
+        , case model.gameStatus of
+            Solved ->
+                h2 [] [ text "you did it!" ]
 
-          else
-            viewWordInput model
+            SetupWord ->
+                label [] [ text "enter your word", viewWordInput model ]
+
+            SetupGuesses ->
+                button [ disabled (Array.length model.guesses >= 5), onClick ClickedAddGuess ] [ text "add guess" ]
+
+            Active _ ->
+                viewWordInput model
         ]
 
 
