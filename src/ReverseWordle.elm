@@ -183,7 +183,7 @@ createWordDict word =
 type Msg
     = GotWord String
     | WordInputChanged String
-    | ClickedGuess Int
+    | ClickedGuess Int Int
     | ClickedReset
     | ClickedAddGuess
 
@@ -277,7 +277,7 @@ update msg model =
             in
             { model | guessInput = WordInput (cleanInput guessText) }
 
-        ClickedGuess i ->
+        ClickedGuess i j ->
             case model.gameStatus of
                 SetupWord ->
                     model
@@ -416,9 +416,9 @@ viewGuess isSelected index guess feedback =
                     [ style "border" "1px solid black" ]
 
                  else
-                    [ style "border" "1px solid transparent", onClick (ClickedGuess index) ]
+                    [ style "border" "1px solid transparent" ]
                 )
-                (List.map viewChar (formatFeedback word feedback))
+                (List.indexedMap viewChar (formatFeedback word feedback))
     in
     case guess of
         Guess word _ ->
@@ -428,11 +428,11 @@ viewGuess isSelected index guess feedback =
             viewG "     "
 
         Solution word ->
-            div [] (List.map viewChar (formatFeedback word feedback))
+            div [] (List.indexedMap viewChar (formatFeedback word feedback))
 
 
-viewChar : ( CharFeedback, Char ) -> Html msg
-viewChar ( feedback, char ) =
+viewChar : SelectionIndex -> ( CharFeedback, Char ) -> Html Msg
+viewChar index ( feedback, char ) =
     let
         feedbackColor : String
         feedbackColor =
@@ -457,6 +457,7 @@ viewChar ( feedback, char ) =
         , style "display" "inline-block"
         , style "font-family" "monospace"
         , style "background-color" feedbackColor
+        , onClick (ClickedGuess index 0)
         ]
         [ text (String.fromChar char |> String.toUpper) ]
 
@@ -490,7 +491,7 @@ viewWordInput model =
             div []
                 [ viewInput wordInput
                 , text "This guess could not be correct. Your guess would look like this:"
-                , div [] (List.map viewChar (formatFeedback wordInput feedback))
+                , div [] (List.indexedMap viewChar (formatFeedback wordInput feedback))
                 , text "But it needs to look like this: "
-                , div [] (List.map viewChar (formatFeedback "     " targetFeedback))
+                , div [] (List.indexedMap viewChar (formatFeedback "     " targetFeedback))
                 ]
