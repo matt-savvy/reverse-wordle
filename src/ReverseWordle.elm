@@ -211,7 +211,6 @@ simplifyFeedback feedback =
                     charFeedback
         )
         feedback
-        |> Debug.log "f"
 
 
 update : Msg -> Model -> Model
