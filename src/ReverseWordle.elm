@@ -75,10 +75,10 @@ type alias Model =
 
 init : Model
 init =
-    { word = ""
+    { word = "hello"
     , guesses = Array.repeat 5 ( NoGuess, initFeedback )
     , guessInput = WordInput ""
-    , gameStatus = SetupWord
+    , gameStatus = SetupGuesses
     }
 
 
@@ -283,7 +283,7 @@ update msg model =
                     model
 
                 SetupGuesses ->
-                    Debug.todo "update the guess feedback"
+                    { model | guesses = updateFeedback i j model.guesses }
 
                 Active _ ->
                     { model | gameStatus = Active i }
@@ -337,6 +337,32 @@ updateGuesses guess feedback index guesses =
         |> Maybe.withDefault ( NoGuess, Dict.empty )
         |> (\( _, existingFeedback ) ->
                 Array.set index ( Guess guess feedback, existingFeedback ) guesses
+           )
+
+
+updateFeedback : SelectionIndex -> Int -> Guesses -> Guesses
+updateFeedback index charIndex guesses =
+    let
+        cycleFeedback : Feedback -> Feedback
+        cycleFeedback feedback =
+            Dict.update charIndex
+                (\maybeFeedbackChar ->
+                    case maybeFeedbackChar of
+                        Just Incorrect ->
+                            Just InWord
+
+                        Just InWord ->
+                            Just Correct
+
+                        _ ->
+                            Just Incorrect
+                )
+                feedback
+    in
+    Array.get index guesses
+        |> Maybe.withDefault ( NoGuess, initFeedback )
+        |> (\( guess, feedback ) ->
+                Array.set index ( guess, cycleFeedback feedback ) guesses
            )
 
 
@@ -418,7 +444,7 @@ viewGuess isSelected index guess feedback =
                  else
                     [ style "border" "1px solid transparent" ]
                 )
-                (List.indexedMap viewChar (formatFeedback word feedback))
+                (List.indexedMap (viewChar index) (formatFeedback word feedback))
     in
     case guess of
         Guess word _ ->
@@ -428,11 +454,11 @@ viewGuess isSelected index guess feedback =
             viewG "     "
 
         Solution word ->
-            div [] (List.indexedMap viewChar (formatFeedback word feedback))
+            div [] (List.indexedMap (viewChar index) (formatFeedback word feedback))
 
 
-viewChar : SelectionIndex -> ( CharFeedback, Char ) -> Html Msg
-viewChar index ( feedback, char ) =
+viewChar : SelectionIndex -> Int -> ( CharFeedback, Char ) -> Html Msg
+viewChar guessIndex charIndex ( feedback, char ) =
     let
         feedbackColor : String
         feedbackColor =
@@ -457,7 +483,7 @@ viewChar index ( feedback, char ) =
         , style "display" "inline-block"
         , style "font-family" "monospace"
         , style "background-color" feedbackColor
-        , onClick (ClickedGuess index 0)
+        , onClick (ClickedGuess guessIndex charIndex)
         ]
         [ text (String.fromChar char |> String.toUpper) ]
 
@@ -491,7 +517,7 @@ viewWordInput model =
             div []
                 [ viewInput wordInput
                 , text "This guess could not be correct. Your guess would look like this:"
-                , div [] (List.indexedMap viewChar (formatFeedback wordInput feedback))
+                , div [] (List.indexedMap (viewChar 0) (formatFeedback wordInput feedback))
                 , text "But it needs to look like this: "
-                , div [] (List.indexedMap viewChar (formatFeedback "     " targetFeedback))
+                , div [] (List.indexedMap (viewChar 0) (formatFeedback "     " targetFeedback))
                 ]
