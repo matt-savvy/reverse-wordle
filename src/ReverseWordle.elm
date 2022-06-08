@@ -399,7 +399,7 @@ viewGuess isSelected index guess feedback =
                 (List.map viewChar (formatFeedback "     " feedback))
 
 
-viewChar : ( CharFeedback, Char ) -> Html Msg
+viewChar : ( CharFeedback, Char ) -> Html msg
 viewChar ( feedback, char ) =
     let
         feedbackColor : String
