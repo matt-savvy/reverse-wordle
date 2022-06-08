@@ -4,7 +4,7 @@ import Array exposing (Array)
 import Browser
 import Dict exposing (Dict)
 import Html exposing (Html, button, div, form, h1, h2, input, span, text, ul)
-import Html.Attributes exposing (maxlength, minlength, style, type_, value)
+import Html.Attributes exposing (maxlength, minlength, style, type_, value, required)
 import Html.Events exposing (onClick, onInput, onSubmit)
 
 
@@ -449,7 +449,7 @@ viewWordInput model =
         viewInput wordInput =
             form
                 [ onSubmit (GotWord wordInput) ]
-                [ input [ type_ "text", value wordInput, onInput WordInputChanged, maxlength 5, minlength 5 ] []
+                [ input [ type_ "text", value wordInput, required True, onInput WordInputChanged, maxlength 5, minlength 5 ] []
                 ]
     in
     case model.guessInput of
