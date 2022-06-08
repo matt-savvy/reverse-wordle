@@ -379,8 +379,9 @@ formatFeedback guess feedback =
 
 viewGuess : Bool -> Int -> Guess -> Feedback -> Html Msg
 viewGuess isSelected index guess feedback =
-    case guess of
-        Guess word _ ->
+    let
+        viewG : Word -> Html Msg
+        viewG word =
             div
                 (if isSelected then
                     [ style "border" "1px solid black" ]
@@ -389,16 +390,13 @@ viewGuess isSelected index guess feedback =
                     [ style "border" "1px solid transparent", onClick (ClickedGuess index) ]
                 )
                 (List.map viewChar (formatFeedback word feedback))
+    in
+    case guess of
+        Guess word _ ->
+            viewG word
 
         NoGuess ->
-            div
-                (if isSelected then
-                    [ style "border" "1px solid black" ]
-
-                 else
-                    [ style "border" "1px solid transparent", onClick (ClickedGuess index) ]
-                )
-                (List.map viewChar (formatFeedback "     " feedback))
+            viewG "     "
 
         Solution word ->
             div [] (List.map viewChar (formatFeedback word feedback))
