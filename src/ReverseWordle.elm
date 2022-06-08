@@ -385,9 +385,6 @@ viewGuess isSelected index guess feedback =
                 )
                 (List.map viewChar (formatFeedback word feedback))
 
-        Solution word ->
-            div [] (List.map viewChar (List.map2 Tuple.pair (List.repeat 5 Correct) (String.toList word)))
-
         NoGuess ->
             div
                 (if isSelected then
@@ -397,6 +394,9 @@ viewGuess isSelected index guess feedback =
                     [ style "border" "1px solid transparent", onClick (ClickedGuess index) ]
                 )
                 (List.map viewChar (formatFeedback "     " feedback))
+
+        Solution word ->
+            div [] (List.map viewChar (formatFeedback word feedback))
 
 
 viewChar : ( CharFeedback, Char ) -> Html msg
