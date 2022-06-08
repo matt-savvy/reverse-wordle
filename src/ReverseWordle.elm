@@ -213,6 +213,17 @@ simplifyFeedback feedback =
         feedback
 
 
+getTargetFeedback : SelectionIndex -> Guesses -> Feedback
+getTargetFeedback index guesses =
+    case Array.get index guesses of
+        Just ( _, feedback ) ->
+            feedback
+
+        Nothing ->
+            -- this could only happen if the selection index gets messed up
+            Dict.empty
+
+
 update : Msg -> Model -> Model
 update msg model =
     case msg of
@@ -230,13 +241,7 @@ update msg model =
 
                         targetFeedback : Feedback
                         targetFeedback =
-                            case Array.get index model.guesses of
-                                Just ( _, feedback ) ->
-                                    feedback
-
-                                Nothing ->
-                                    -- this could only happen if the selection index gets messed up
-                                    Dict.empty
+                            getTargetFeedback index model.guesses
                     in
                     if simplifyFeedback guessFeedback /= simplifyFeedback targetFeedback then
                         { model | guessInput = RejectedInput wordInput guessFeedback }
@@ -444,8 +449,21 @@ viewWordInput model =
             div [] [ viewInput wordInput ]
 
         RejectedInput wordInput feedback ->
+            let
+                targetFeedback : Feedback
+                targetFeedback =
+                    case model.gameStatus of
+                        Active index ->
+                            getTargetFeedback index model.guesses
+
+                        _ ->
+                            -- this shouldn't happen either
+                            Dict.empty
+            in
             div []
                 [ viewInput wordInput
-                , text "This guess could not be correct. Your guess would look like this :"
+                , text "This guess could not be correct. Your guess would look like this:"
                 , div [] (List.map viewChar (formatFeedback wordInput feedback))
+                , text "But it needs to look like this: "
+                , div [] (List.map viewChar (formatFeedback "     " targetFeedback))
                 ]
