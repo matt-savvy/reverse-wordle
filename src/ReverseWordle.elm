@@ -75,10 +75,10 @@ type alias Model =
 
 init : Model
 init =
-    { word = "hello"
+    { word = ""
     , guesses = Array.repeat 5 ( NoGuess, initFeedback )
     , guessInput = WordInput ""
-    , gameStatus = SetupGuesses
+    , gameStatus = SetupWord
     }
 
 
@@ -187,6 +187,7 @@ type Msg
     | ClickedReset
     | ClickedAddGuess
     | ClickedRemoveGuess SelectionIndex
+    | ClickedFinishedSetup
 
 
 simplifyFeedback : Feedback -> Feedback
@@ -223,7 +224,7 @@ update msg model =
         GotWord wordInput ->
             case model.gameStatus of
                 SetupWord ->
-                    { model | word = wordInput, gameStatus = SetupGuesses }
+                    { model | word = wordInput, gameStatus = SetupGuesses, guessInput = WordInput "" }
 
                 SetupGuesses ->
                     -- shouldn't really be able to get a guess while solved
@@ -297,6 +298,9 @@ update msg model =
 
         ClickedRemoveGuess i ->
             { model | guesses = removeAtIndex i model.guesses }
+
+        ClickedFinishedSetup ->
+            { model | gameStatus = Active (Array.length model.guesses - 1) }
 
         ClickedReset ->
             -- TODO handle what mode we're in
@@ -430,7 +434,12 @@ view model =
                 label [] [ text "enter your word", viewWordInput model ]
 
             SetupGuesses ->
-                button [ disabled (Array.length model.guesses >= 5), onClick ClickedAddGuess ] [ text "add guess" ]
+                div []
+                    [ button [ disabled (Array.length model.guesses >= 5), onClick ClickedAddGuess ] [ text "add guess" ]
+
+                    --  TODO disable this if the feedback is empty ?
+                    , button [ onClick ClickedFinishedSetup ] [ text "finished setup" ]
+                    ]
 
             Active _ ->
                 viewWordInput model
