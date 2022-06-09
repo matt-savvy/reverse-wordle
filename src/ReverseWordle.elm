@@ -76,10 +76,33 @@ type alias Model =
 
 init : Model
 init =
-    { word = ""
-    , guesses = Array.repeat 5 ( NoGuess, initFeedback )
+    let
+        word =
+            "plane"
+
+        puzzle =
+            createPuzzle word
+
+        guesses =
+            solve puzzle
+                |> Array.map
+                    (\entry ->
+                        case entry of
+                            Guess w feedback ->
+                                ( Guess w feedback, feedback )
+
+                            NoGuess ->
+                                ( NoGuess, Dict.empty )
+
+                            Solution _ ->
+                                ( NoGuess, solutionFeedback )
+                    )
+                |> Array.filter (\( _, feedback ) -> feedback /= solutionFeedback)
+    in
+    { word = word
+    , guesses = guesses
     , guessInput = WordInput ""
-    , gameStatus = SetupWord
+    , gameStatus = Solved
     }
 
 
