@@ -6,6 +6,7 @@ import Dict exposing (Dict)
 import Html exposing (Html, button, div, form, h1, h2, input, label, span, text, ul)
 import Html.Attributes exposing (disabled, maxlength, minlength, required, style, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
+import Words exposing (masterList)
 
 
 
@@ -316,17 +317,21 @@ removeAtIndex index arr =
 
 isSolved : Guesses -> Bool
 isSolved guesses =
-    let
-        isNoGuess : ( Guess, Feedback ) -> Bool
-        isNoGuess ( guess, _ ) =
-            case guess of
-                NoGuess ->
-                    True
+    if Array.isEmpty guesses then
+        False
 
-                _ ->
-                    False
-    in
-    Array.isEmpty (Array.filter isNoGuess guesses)
+    else
+        let
+            isNoGuess : ( Guess, Feedback ) -> Bool
+            isNoGuess ( guess, _ ) =
+                case guess of
+                    NoGuess ->
+                        True
+
+                    _ ->
+                        False
+        in
+        Array.isEmpty (Array.filter isNoGuess guesses)
 
 
 getNextIndex : Int -> Guesses -> Int
@@ -379,6 +384,77 @@ updateFeedback index charIndex guesses =
         |> (\( guess, feedback ) ->
                 Array.set index ( guess, cycleFeedback feedback ) guesses
            )
+
+
+
+-- SOLVER
+
+
+type Puzzle
+    = Puzzle (Word -> Feedback)
+
+
+type PuzzleResult
+    = Success Guesses
+    | Failure
+
+
+createPuzzle : Word -> Puzzle
+createPuzzle word =
+    Puzzle (\guess -> getFeedback guess word)
+
+
+solve : Puzzle -> Array Guess
+solve (Puzzle eval) =
+    solveHelper eval masterList Array.empty
+
+
+type alias PossibleWords =
+    List Word
+
+
+
+-- is the game solved in forwards mode?
+
+
+isSolvedClassic : Array Guess -> Bool
+isSolvedClassic guesses =
+    case Array.get (Array.length guesses - 1) guesses of
+        Just (Guess word feedback) ->
+            feedback == solutionFeedback
+
+        _ ->
+            False
+
+
+solveHelper : (Word -> Feedback) -> PossibleWords -> Array Guess -> Array Guess
+solveHelper eval wordList guesses =
+    let
+        d =
+            Debug.log "wordList length" (List.length wordList)
+
+        filterWords : Feedback -> Word -> PossibleWords -> PossibleWords
+        filterWords feedback lastGuess remainingWords =
+            List.filter (\possibleWord -> getFeedback lastGuess possibleWord == feedback) remainingWords
+    in
+    if isSolvedClassic guesses then
+        guesses
+
+    else if Array.length guesses > 6 then
+        guesses
+
+    else
+        case wordList of
+            guess :: remainingWordList ->
+                let
+                    feedback : Feedback
+                    feedback =
+                        eval guess
+                in
+                solveHelper eval (filterWords feedback guess remainingWordList) (Array.push (Guess guess feedback) guesses)
+
+            [] ->
+                Debug.todo "replace this with PuzzleResult failure"
 
 
 
