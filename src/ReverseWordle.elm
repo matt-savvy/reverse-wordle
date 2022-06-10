@@ -53,6 +53,7 @@ type alias Guesses =
 type WordInput
     = WordInput String
     | RejectedInput String Feedback
+    | NotAWord String
 
 
 type alias SelectionIndex =
@@ -78,7 +79,7 @@ init : Model
 init =
     let
         word =
-            "plane"
+            "grand"
 
         puzzle =
             createPuzzle word
@@ -89,7 +90,8 @@ init =
                     (\entry ->
                         case entry of
                             Guess w feedback ->
-                                ( Guess w feedback, feedback )
+                                -- ( Guess w feedback, feedback )
+                                ( NoGuess, feedback )
 
                             NoGuess ->
                                 ( NoGuess, Dict.empty )
@@ -102,7 +104,7 @@ init =
     { word = word
     , guesses = guesses
     , guessInput = WordInput ""
-    , gameStatus = Solved
+    , gameStatus = Active (Array.length guesses - 1)
     }
 
 
@@ -268,7 +270,10 @@ update msg model =
                         targetFeedback =
                             getTargetFeedback index model.guesses
                     in
-                    if simplifyFeedback guessFeedback /= simplifyFeedback targetFeedback then
+                    if not (List.member wordInput masterList) then
+                        { model | guessInput = NotAWord wordInput }
+
+                    else if simplifyFeedback guessFeedback /= simplifyFeedback targetFeedback then
                         { model | guessInput = RejectedInput wordInput guessFeedback }
 
                     else
@@ -644,4 +649,10 @@ viewWordInput model =
                 , div [] (List.indexedMap (viewChar 0) (formatFeedback wordInput feedback))
                 , text "But it needs to look like this: "
                 , div [] (List.indexedMap (viewChar 0) (formatFeedback "     " targetFeedback))
+                ]
+
+        NotAWord wordInput ->
+            div []
+                [ viewInput wordInput
+                , text (wordInput ++ " is not a word in our dictionary")
                 ]
