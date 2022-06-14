@@ -6,6 +6,7 @@ import Dict exposing (Dict)
 import Html exposing (Html, button, div, form, h1, h2, input, label, span, text, ul)
 import Html.Attributes exposing (disabled, maxlength, minlength, required, style, type_, value)
 import Html.Events exposing (onClick, onInput, onSubmit)
+import Random
 import Words exposing (masterList)
 
 
@@ -66,6 +67,7 @@ type GameStatus
     | Solved
     | SetupWord
     | SetupGuesses
+    | GeneratePuzzle
 
 
 type alias Model =
@@ -76,17 +78,15 @@ type alias Model =
     }
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
+initGame : Word -> Model
+initGame word =
     let
-        word =
-            "grand"
-
         puzzle =
             createPuzzle word
 
         guesses =
             solve puzzle
+                |> Debug.log "puzzle"
                 |> Array.map
                     (\entry ->
                         case entry of
@@ -102,12 +102,21 @@ init _ =
                     )
                 |> Array.filter (\( _, feedback ) -> feedback /= solutionFeedback)
     in
-    ( { word = word
-      , guesses = guesses
+    { word = word
+    , guesses = guesses
+    , guessInput = WordInput ""
+    , gameStatus = Active (Array.length guesses - 1)
+    }
+
+
+init : () -> ( Model, Cmd Msg )
+init _ =
+    ( { word = ""
+      , guesses = Array.empty
       , guessInput = WordInput ""
-      , gameStatus = Active (Array.length guesses - 1)
+      , gameStatus = GeneratePuzzle
       }
-    , Cmd.none
+    , Random.generate GotWord (Random.uniform "plane" masterList)
     )
 
 
@@ -247,11 +256,27 @@ getTargetFeedback index guesses =
             Dict.empty
 
 
+getWord : Int -> String
+getWord i =
+    let
+        doesntContain : String -> String -> Bool
+        doesntContain substr str =
+            not (String.contains substr str)
+    in
+    Array.fromList masterList
+        |> Array.filter (doesntContain "ight")
+        |> Array.get i
+        |> Maybe.withDefault "plane"
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         GotWord wordInput ->
             case model.gameStatus of
+                GeneratePuzzle ->
+                    ( initGame wordInput, Cmd.none )
+
                 SetupWord ->
                     ( { model | word = wordInput, gameStatus = SetupGuesses, guessInput = WordInput "" }, Cmd.none )
 
@@ -319,6 +344,9 @@ update msg model =
                     ( { model | gameStatus = Active i }, Cmd.none )
 
                 Solved ->
+                    ( model, Cmd.none )
+
+                GeneratePuzzle ->
                     ( model, Cmd.none )
 
         ClickedAddGuess ->
@@ -517,6 +545,9 @@ view model =
                 Solved ->
                     False
 
+                GeneratePuzzle ->
+                    False
+
         guessList : List ( Guess, Feedback )
         guessList =
             Array.toList (Array.push ( Solution model.word, solutionFeedback ) model.guesses)
@@ -543,6 +574,9 @@ view model =
 
             Active _ ->
                 viewWordInput model
+
+            GeneratePuzzle ->
+                text ""
         ]
 
 
