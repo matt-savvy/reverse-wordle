@@ -25,14 +25,20 @@ createWordDictTests =
         ]
 
 
-arrayWords : Array String
-arrayWords =
+filteredWords : Array Word
+filteredWords =
+    let
+        doesntContain : String -> String -> Bool
+        doesntContain substr str =
+            not (String.contains substr str)
+    in
     Array.fromList masterList
+        |> Array.filter (doesntContain "ight")
 
 
 getWord : Int -> String
 getWord i =
-    Array.get i arrayWords
+    Array.get i filteredWords
         |> Maybe.withDefault "plane"
 
 
@@ -52,25 +58,14 @@ solverTests =
                    )
     in
     describe "solver tests"
-        -- [ fuzz (Fuzz.intRange 0 (Array.length arrayWords)) "last guess is the word input"  <|
-        --     \i ->
-        --         let
-        --             word : String
-        --             word = getWord i
-        --         in
-        --         Expect.equal
-        --             (getLastGuess (solve (createPuzzle word)))
-        --             word
-        -- , test "tight" <|
-        [ test "tight" <|
-            \_ ->
+        [ fuzz (Fuzz.intRange 0 (Array.length filteredWords)) "last guess is the word input" <|
+            \i ->
+                let
+                    word : String
+                    word =
+                        getWord i
+                in
                 Expect.equal
-                    (getLastGuess (solve (createPuzzle "tight")))
-                    "tight"
-
-        -- , test "right" <|
-        --     \_ ->
-        --     Expect.equal
-        --             (getLastGuess (solve (createPuzzle "right")))
-        --             "right"
+                    (getLastGuess (solve (createPuzzle word)))
+                    word
         ]

@@ -458,9 +458,6 @@ isSolvedClassic guesses =
 solveHelper : (Word -> Feedback) -> PossibleWords -> Array Guess -> Array Guess
 solveHelper eval wordList guesses =
     let
-        d =
-            Debug.log "wordList length" (List.length wordList)
-
         filterWords : Feedback -> Word -> PossibleWords -> PossibleWords
         filterWords feedback lastGuess remainingWords =
             List.filter (\possibleWord -> getFeedback lastGuess possibleWord == feedback) remainingWords
