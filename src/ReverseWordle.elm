@@ -14,10 +14,11 @@ import Words exposing (masterList)
 
 
 main =
-    Browser.sandbox
+    Browser.element
         { init = init
         , update = update
         , view = view
+        , subscriptions = \_ -> Sub.none
         }
 
 
@@ -75,8 +76,8 @@ type alias Model =
     }
 
 
-init : Model
-init =
+init : () -> ( Model, Cmd Msg )
+init _ =
     let
         word =
             "grand"
@@ -101,11 +102,13 @@ init =
                     )
                 |> Array.filter (\( _, feedback ) -> feedback /= solutionFeedback)
     in
-    { word = word
-    , guesses = guesses
-    , guessInput = WordInput ""
-    , gameStatus = Active (Array.length guesses - 1)
-    }
+    ( { word = word
+      , guesses = guesses
+      , guessInput = WordInput ""
+      , gameStatus = Active (Array.length guesses - 1)
+      }
+    , Cmd.none
+    )
 
 
 getFeedback : Word -> Word -> Dict Int CharFeedback
@@ -244,21 +247,21 @@ getTargetFeedback index guesses =
             Dict.empty
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         GotWord wordInput ->
             case model.gameStatus of
                 SetupWord ->
-                    { model | word = wordInput, gameStatus = SetupGuesses, guessInput = WordInput "" }
+                    ( { model | word = wordInput, gameStatus = SetupGuesses, guessInput = WordInput "" }, Cmd.none )
 
                 SetupGuesses ->
                     -- shouldn't really be able to get a guess while solved
-                    model
+                    ( model, Cmd.none )
 
                 Solved ->
                     -- shouldn't really be able to get a guess while solved
-                    model
+                    ( model, Cmd.none )
 
                 Active index ->
                     let
@@ -271,10 +274,10 @@ update msg model =
                             getTargetFeedback index model.guesses
                     in
                     if not (List.member wordInput masterList) then
-                        { model | guessInput = NotAWord wordInput }
+                        ( { model | guessInput = NotAWord wordInput }, Cmd.none )
 
                     else if simplifyFeedback guessFeedback /= simplifyFeedback targetFeedback then
-                        { model | guessInput = RejectedInput wordInput guessFeedback }
+                        ( { model | guessInput = RejectedInput wordInput guessFeedback }, Cmd.none )
 
                     else
                         let
@@ -294,11 +297,7 @@ update msg model =
                                 else
                                     Active (getNextIndex index nextGuesses)
                         in
-                        { model
-                            | guesses = nextGuesses
-                            , guessInput = WordInput ""
-                            , gameStatus = nextGameStatus
-                        }
+                        ( { model | guesses = nextGuesses, guessInput = WordInput "", gameStatus = nextGameStatus }, Cmd.none )
 
         WordInputChanged guessText ->
             let
@@ -306,34 +305,34 @@ update msg model =
                 cleanInput str =
                     str |> String.toLower |> String.filter Char.isAlpha
             in
-            { model | guessInput = WordInput (cleanInput guessText) }
+            ( { model | guessInput = WordInput (cleanInput guessText) }, Cmd.none )
 
         ClickedGuess i j ->
             case model.gameStatus of
                 SetupWord ->
-                    model
+                    ( model, Cmd.none )
 
                 SetupGuesses ->
-                    { model | guesses = updateFeedback i j model.guesses }
+                    ( { model | guesses = updateFeedback i j model.guesses }, Cmd.none )
 
                 Active _ ->
-                    { model | gameStatus = Active i }
+                    ( { model | gameStatus = Active i }, Cmd.none )
 
                 Solved ->
-                    model
+                    ( model, Cmd.none )
 
         ClickedAddGuess ->
-            { model | guesses = Array.slice 0 5 (Array.push ( NoGuess, initFeedback ) model.guesses) }
+            ( { model | guesses = Array.slice 0 5 (Array.push ( NoGuess, initFeedback ) model.guesses) }, Cmd.none )
 
         ClickedRemoveGuess i ->
-            { model | guesses = removeAtIndex i model.guesses }
+            ( { model | guesses = removeAtIndex i model.guesses }, Cmd.none )
 
         ClickedFinishedSetup ->
-            { model | gameStatus = Active (Array.length model.guesses - 1) }
+            ( { model | gameStatus = Active (Array.length model.guesses - 1) }, Cmd.none )
 
         ClickedReset ->
             -- TODO handle what mode we're in
-            init
+            init ()
 
 
 removeAtIndex : Int -> Array a -> Array a
