@@ -546,7 +546,7 @@ mainStyle =
     Css.batch
         [ backgroundColor theme.colors.backgroundColor
         , color theme.colors.color
-        , fontFamilies ["Helvetica Neue", "Arial", "sans-serif" ]
+        , fontFamilies [ "Helvetica Neue", "Arial", "sans-serif" ]
         ]
 
 
@@ -611,12 +611,19 @@ formatFeedback guess feedback =
 
 guessStyle : Style
 guessStyle =
-    Css.batch [ border3 (px 1) solid transparent ]
+    Css.batch
+        [ border3 (px 1) solid transparent
+        , displayFlex
+        , justifyContent spaceAround
+        , width (px 200)
+        , padding (px 2)
+        , margin2 (px 2) (px 2)
+        ]
 
 
 selectedGuessStyle : Style
 selectedGuessStyle =
-    Css.batch [ border3 (px 1) solid (rgb 128 128 128) ]
+    Css.batch [ guessStyle, border3 (px 1) solid (rgb 128 128 128) ]
 
 
 viewGuess : Bool -> Int -> Guess -> Feedback -> GameStatus -> Html Msg
@@ -640,13 +647,13 @@ viewGuess isSelected index guess feedback gameStatus =
         NoGuess ->
             case gameStatus of
                 SetupGuesses ->
-                    div [ css [ displayFlex ] ] [ viewG "     ", button [ onClick (ClickedRemoveGuess index) ] [ text "x" ] ]
+                    div [] [ viewG "     ", button [ onClick (ClickedRemoveGuess index) ] [ text "x" ] ]
 
                 _ ->
                     div [] [ viewG "     " ]
 
         Solution word ->
-            div [] (List.indexedMap (viewChar index) (formatFeedback word feedback))
+            div [ css [ guessStyle ] ] (List.indexedMap (viewChar index) (formatFeedback word feedback))
 
 
 viewChar : SelectionIndex -> Int -> ( CharFeedback, Char ) -> Html Msg
@@ -669,8 +676,7 @@ viewChar guessIndex charIndex ( feedback, char ) =
     in
     span
         [ css
-            [ margin2 (px 2) (px 4)
-            , minHeight (px 33)
+            [ minHeight (px 33)
             , minWidth (px 33)
             , display inlineFlex
             , alignItems center
