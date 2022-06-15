@@ -516,12 +516,13 @@ solveHelper eval wordList guesses =
 -- VIEW
 
 
-theme : { colors : { inWord : Color, incorrect : Color, correct : Color } }
 theme =
     { colors =
-        { inWord = rgb 255 255 0
-        , incorrect = rgb 128 128 117
-        , correct = rgb 0 128 0
+        { inWord = rgb 181 159 58
+        , incorrect = rgb 58 58 60
+        , correct = rgb 83 141 78
+        , backgroundColor = rgb 18 18 18
+        , color = rgb 255 255 255
         }
     }
 
@@ -538,6 +539,15 @@ solutionFeedback =
     List.repeat 5 Correct
         |> List.indexedMap Tuple.pair
         |> Dict.fromList
+
+
+mainStyle : Style
+mainStyle =
+    Css.batch
+        [ backgroundColor theme.colors.backgroundColor
+        , color theme.colors.color
+        , fontFamilies ["Helvetica Neue", "Arial", "sans-serif" ]
+        ]
 
 
 view : Model -> Html Msg
@@ -565,8 +575,8 @@ view model =
         guessList =
             Array.toList (Array.push ( Solution model.word, solutionFeedback ) model.guesses)
     in
-    div [ css [ fontSize (px 20) ] ]
-        [ h1 [] [ text "Reverse Wordle" ]
+    div [ css [ mainStyle, fontSize (px 16) ] ]
+        [ h1 [ css [ opacity (Css.num 0.9) ] ] [ text "Reverse Wordle" ]
         , div [ css [ maxWidth fitContent ] ]
             (List.indexedMap (\i ( guess, feedback ) -> viewGuess (getIsSelected i) i guess feedback model.gameStatus) guessList)
         , button [ onClick ClickedReset ] [ text "reset" ]
@@ -606,7 +616,7 @@ guessStyle =
 
 selectedGuessStyle : Style
 selectedGuessStyle =
-    Css.batch [ border3 (px 1) solid (rgb 0 0 0) ]
+    Css.batch [ border3 (px 1) solid (rgb 128 128 128) ]
 
 
 viewGuess : Bool -> Int -> Guess -> Feedback -> GameStatus -> Html Msg
@@ -659,13 +669,16 @@ viewChar guessIndex charIndex ( feedback, char ) =
     in
     span
         [ css
-            [ padding2 (px 2) (px 4)
-            , margin2 (px 2) (px 4)
-            , height (em 1)
-            , minWidth (px 12)
-            , display inlineBlock
-            , fontFamily monospace
+            [ margin2 (px 2) (px 4)
+            , minHeight (px 33)
+            , minWidth (px 33)
+            , display inlineFlex
+            , alignItems center
+            , justifyContent center
+            , verticalAlign middle
+            , lineHeight (px 16)
             , backgroundColor feedbackColor
+            , fontWeight (int 700)
             ]
         , onClick (ClickedGuess guessIndex charIndex)
         ]
