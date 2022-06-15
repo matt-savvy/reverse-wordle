@@ -516,6 +516,16 @@ solveHelper eval wordList guesses =
 -- VIEW
 
 
+theme : { colors : { inWord : Color, incorrect : Color, correct : Color } }
+theme =
+    { colors =
+        { inWord = rgb 255 255 0
+        , incorrect = rgb 128 128 117
+        , correct = rgb 0 128 0
+        }
+    }
+
+
 initFeedback : Feedback
 initFeedback =
     List.repeat 5 Incorrect
@@ -636,21 +646,16 @@ viewChar guessIndex charIndex ( feedback, char ) =
         feedbackColor =
             case feedback of
                 NotInWord ->
-                    rgb 128 128 117
+                    theme.colors.incorrect
 
-                -- gray
                 Incorrect ->
-                    rgb 128 128 117
+                    theme.colors.incorrect
 
-                -- gray
                 InWord ->
-                    rgb 255 255 0
+                    theme.colors.inWord
 
-                -- yellow
                 Correct ->
-                    rgb 0 128 0
-
-        -- green
+                    theme.colors.correct
     in
     span
         [ css
