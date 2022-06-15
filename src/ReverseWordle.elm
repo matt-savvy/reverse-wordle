@@ -2,10 +2,11 @@ module ReverseWordle exposing (..)
 
 import Array exposing (Array)
 import Browser
+import Css exposing (..)
 import Dict exposing (Dict)
 import Html
-import Html.Styled exposing (Html, button, div, form, h1, h2, input, label, text, span, toUnstyled)
-import Html.Styled.Attributes as Attr exposing (disabled, maxlength, minlength, required, style, type_, value)
+import Html.Styled exposing (Html, button, div, form, h1, h2, input, label, span, text, toUnstyled)
+import Html.Styled.Attributes as Attr exposing (css, disabled, maxlength, minlength, required, type_, value)
 import Html.Styled.Events exposing (onClick, onInput, onSubmit)
 import Random
 import Words exposing (masterList)
@@ -554,9 +555,9 @@ view model =
         guessList =
             Array.toList (Array.push ( Solution model.word, solutionFeedback ) model.guesses)
     in
-    div [ style "font-size" "20px" ]
+    div [ css [ fontSize (px 20) ] ]
         [ h1 [] [ text "Reverse Wordle" ]
-        , div [ style "width" "fit-content" ]
+        , div [ css [ maxWidth fitContent ] ]
             (List.indexedMap (\i ( guess, feedback ) -> viewGuess (getIsSelected i) i guess feedback model.gameStatus) guessList)
         , button [ onClick ClickedReset ] [ text "reset" ]
         , case model.gameStatus of
@@ -588,6 +589,16 @@ formatFeedback guess feedback =
         |> List.map2 Tuple.pair (Dict.values feedback)
 
 
+guessStyle : Style
+guessStyle =
+    Css.batch [ border3 (px 1) solid transparent ]
+
+
+selectedGuessStyle : Style
+selectedGuessStyle =
+    Css.batch [ border3 (px 1) solid (rgb 0 0 0) ]
+
+
 viewGuess : Bool -> Int -> Guess -> Feedback -> GameStatus -> Html Msg
 viewGuess isSelected index guess feedback gameStatus =
     let
@@ -595,10 +606,10 @@ viewGuess isSelected index guess feedback gameStatus =
         viewG word =
             div
                 (if isSelected then
-                    [ style "border" "1px solid black" ]
+                    [ css [ selectedGuessStyle ] ]
 
                  else
-                    [ style "border" "1px solid transparent" ]
+                    [ css [ guessStyle ] ]
                 )
                 (List.indexedMap (viewChar index) (formatFeedback word feedback))
     in
@@ -609,7 +620,7 @@ viewGuess isSelected index guess feedback gameStatus =
         NoGuess ->
             case gameStatus of
                 SetupGuesses ->
-                    div [ style "display" "flex" ] [ viewG "     ", button [ onClick (ClickedRemoveGuess index) ] [ text "x" ] ]
+                    div [ css [ displayFlex ] ] [ viewG "     ", button [ onClick (ClickedRemoveGuess index) ] [ text "x" ] ]
 
                 _ ->
                     div [] [ viewG "     " ]
@@ -621,29 +632,36 @@ viewGuess isSelected index guess feedback gameStatus =
 viewChar : SelectionIndex -> Int -> ( CharFeedback, Char ) -> Html Msg
 viewChar guessIndex charIndex ( feedback, char ) =
     let
-        feedbackColor : String
+        feedbackColor : Color
         feedbackColor =
             case feedback of
                 NotInWord ->
-                    "gray"
+                    rgb 128 128 117
 
+                -- gray
                 Incorrect ->
-                    "gray"
+                    rgb 128 128 117
 
+                -- gray
                 InWord ->
-                    "yellow"
+                    rgb 255 255 0
 
+                -- yellow
                 Correct ->
-                    "green"
+                    rgb 0 128 0
+
+        -- green
     in
     span
-        [ style "padding" "2px 4px"
-        , style "margin" "2px 4px"
-        , style "height" "1em"
-        , style "min-width" "12px"
-        , style "display" "inline-block"
-        , style "font-family" "monospace"
-        , style "background-color" feedbackColor
+        [ css
+            [ padding2 (px 2) (px 4)
+            , margin2 (px 2) (px 4)
+            , height (em 1)
+            , minWidth (px 12)
+            , display inlineBlock
+            , fontFamily monospace
+            , backgroundColor feedbackColor
+            ]
         , onClick (ClickedGuess guessIndex charIndex)
         ]
         [ text (String.fromChar char |> String.toUpper) ]
