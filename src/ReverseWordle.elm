@@ -3,9 +3,10 @@ module ReverseWordle exposing (..)
 import Array exposing (Array)
 import Browser
 import Dict exposing (Dict)
-import Html exposing (Html, button, div, form, h1, h2, input, label, span, text, ul)
-import Html.Attributes exposing (disabled, maxlength, minlength, required, style, type_, value)
-import Html.Events exposing (onClick, onInput, onSubmit)
+import Html
+import Html.Styled exposing (Html, button, div, form, h1, h2, input, label, text, span, toUnstyled)
+import Html.Styled.Attributes as Attr exposing (disabled, maxlength, minlength, required, style, type_, value)
+import Html.Styled.Events exposing (onClick, onInput, onSubmit)
 import Random
 import Words exposing (masterList)
 
@@ -14,11 +15,12 @@ import Words exposing (masterList)
 -- MAIN
 
 
+main : Program () Model Msg
 main =
     Browser.element
         { init = init
         , update = update
-        , view = view
+        , view = view >> toUnstyled
         , subscriptions = \_ -> Sub.none
         }
 
@@ -566,7 +568,7 @@ view model =
 
             SetupGuesses ->
                 div []
-                    [ button [ disabled (Array.length model.guesses >= 5), onClick ClickedAddGuess ] [ text "add guess" ]
+                    [ button [ Attr.disabled (Array.length model.guesses >= 5), onClick ClickedAddGuess ] [ text "add guess" ]
 
                     --  TODO disable this if the feedback is empty ?
                     , button [ onClick ClickedFinishedSetup ] [ text "finished setup" ]
@@ -654,7 +656,7 @@ viewWordInput model =
         viewInput wordInput =
             form
                 [ onSubmit (GotWord wordInput) ]
-                [ input [ type_ "text", value wordInput, required True, onInput WordInputChanged, maxlength 5, minlength 5 ] []
+                [ input [ type_ "text", value wordInput, Attr.required True, onInput WordInputChanged, maxlength 5, minlength 5 ] []
                 ]
     in
     case model.guessInput of
