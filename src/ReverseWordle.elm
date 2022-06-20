@@ -81,6 +81,23 @@ type alias Model =
     }
 
 
+resetGuesses : Guesses -> Guesses
+resetGuesses guesses =
+    Array.map
+        (\( guess, feedback ) ->
+            case guess of
+                Guess _ _ ->
+                    ( NoGuess, feedback )
+
+                NoGuess ->
+                    ( NoGuess, feedback )
+
+                Solution _ ->
+                    ( NoGuess, solutionFeedback )
+        )
+        guesses
+
+
 initGame : Word -> Model
 initGame word =
     let
@@ -362,8 +379,45 @@ update msg model =
             ( { model | gameStatus = Active (Array.length model.guesses - 1) }, Cmd.none )
 
         ClickedReset ->
-            -- TODO handle what mode we're in
-            init ()
+            case model.gameStatus of
+                Active guesses ->
+                    ( { model
+                        | gameStatus = Active (Array.length model.guesses - 1)
+                        , guesses = resetGuesses model.guesses
+                        , guessInput = WordInput ""
+                      }
+                    , Cmd.none
+                    )
+
+                Solved ->
+                    -- same as above
+                    ( { model
+                        | gameStatus = Active (Array.length model.guesses - 1)
+                        , guesses = resetGuesses model.guesses
+                        , guessInput = WordInput ""
+                      }
+                    , Cmd.none
+                    )
+
+                GeneratePuzzle ->
+                    -- shouldn't really be possible
+                    init ()
+
+                SetupGuesses ->
+                    ( { model
+                        | guesses = Array.empty
+                        , guessInput = WordInput ""
+                      }
+                    , Cmd.none
+                    )
+
+                SetupWord ->
+                    ( { model
+                        | guessInput = WordInput ""
+                        , word = ""
+                      }
+                    , Cmd.none
+                    )
 
 
 removeAtIndex : Int -> Array a -> Array a
