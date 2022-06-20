@@ -547,6 +547,9 @@ mainStyle =
         [ backgroundColor theme.colors.backgroundColor
         , color theme.colors.color
         , fontFamilies [ "Helvetica Neue", "Arial", "sans-serif" ]
+        , maxWidth fitContent
+        , marginLeft auto
+        , marginRight auto
         ]
 
 
