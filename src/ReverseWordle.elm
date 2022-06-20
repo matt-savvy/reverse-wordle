@@ -2,13 +2,15 @@ module ReverseWordle exposing (..)
 
 import Array exposing (Array)
 import Browser
+import Browser.Dom as Dom
 import Css exposing (..)
 import Dict exposing (Dict)
 import Html
 import Html.Styled exposing (Html, button, div, form, h1, h2, h3, input, label, span, text, toUnstyled)
-import Html.Styled.Attributes as Attr exposing (css, disabled, maxlength, minlength, required, type_, value)
+import Html.Styled.Attributes as Attr exposing (css, disabled, id, maxlength, minlength, required, type_, value)
 import Html.Styled.Events exposing (onClick, onInput, onSubmit)
 import Random
+import Task
 import Words exposing (masterList)
 
 
@@ -246,6 +248,7 @@ type Msg
     | ClickedAddGuess
     | ClickedRemoveGuess SelectionIndex
     | ClickedFinishedSetup
+    | NoOp
 
 
 simplifyFeedback : Feedback -> Feedback
@@ -289,9 +292,17 @@ getWord i =
         |> Maybe.withDefault "plane"
 
 
+focusInput : Cmd Msg
+focusInput =
+    Task.attempt (\_ -> NoOp) (Dom.focus "guess-input")
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        NoOp ->
+            ( model, Cmd.none )
+
         GotWord wordInput ->
             case model.gameStatus of
                 GeneratePuzzle ->
@@ -361,7 +372,7 @@ update msg model =
                     ( { model | guesses = updateFeedback i j model.guesses }, Cmd.none )
 
                 Active _ ->
-                    ( { model | gameStatus = Active i }, Cmd.none )
+                    ( { model | gameStatus = Active i }, focusInput )
 
                 Solved ->
                     ( model, Cmd.none )
@@ -754,7 +765,7 @@ viewWordInput model =
         viewInput wordInput =
             form
                 [ onSubmit (GotWord wordInput), css [ displayFlex, flexDirection column, alignItems center ] ]
-                [ input [ type_ "text", value wordInput, Attr.required True, onInput WordInputChanged, maxlength 5, minlength 5 ] []
+                [ input [ id "guess-input", type_ "text", value wordInput, Attr.required True, onInput WordInputChanged, maxlength 5, minlength 5 ] []
                 ]
     in
     case model.guessInput of
