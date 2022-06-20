@@ -5,7 +5,7 @@ import Browser
 import Css exposing (..)
 import Dict exposing (Dict)
 import Html
-import Html.Styled exposing (Html, button, div, form, h1, h2, input, label, span, text, toUnstyled)
+import Html.Styled exposing (Html, button, div, form, h1, h2, h3, input, label, span, text, toUnstyled)
 import Html.Styled.Attributes as Attr exposing (css, disabled, maxlength, minlength, required, type_, value)
 import Html.Styled.Events exposing (onClick, onInput, onSubmit)
 import Random
@@ -547,9 +547,9 @@ mainStyle =
         [ backgroundColor theme.colors.backgroundColor
         , color theme.colors.color
         , fontFamilies [ "Helvetica Neue", "Arial", "sans-serif" ]
-        , maxWidth fitContent
-        , marginLeft auto
-        , marginRight auto
+        , displayFlex
+        , flexDirection column
+        , alignItems center
         ]
 
 
@@ -580,7 +580,7 @@ view model =
     in
     div [ css [ mainStyle, fontSize (px 16) ] ]
         [ h1 [ css [ opacity (Css.num 0.9) ] ] [ text "Reverse Wordle" ]
-        , div [ css [ maxWidth fitContent ] ]
+        , div []
             (List.indexedMap (\i ( guess, feedback ) -> viewGuess (getIsSelected i) i guess feedback model.gameStatus) guessList)
         , button [ onClick ClickedReset ] [ text "reset" ]
         , case model.gameStatus of
@@ -700,7 +700,7 @@ viewWordInput model =
         viewInput : String -> Html Msg
         viewInput wordInput =
             form
-                [ onSubmit (GotWord wordInput) ]
+                [ onSubmit (GotWord wordInput), css [ displayFlex, flexDirection column, alignItems center ] ]
                 [ input [ type_ "text", value wordInput, Attr.required True, onInput WordInputChanged, maxlength 5, minlength 5 ] []
                 ]
     in
@@ -720,12 +720,13 @@ viewWordInput model =
                             -- this shouldn't happen either
                             Dict.empty
             in
-            div []
+            div [ css [ displayFlex, flexDirection column, alignItems center ] ]
                 [ viewInput wordInput
-                , text "This guess could not be correct. Your guess would look like this:"
-                , div [ css [guessStyle] ] (List.indexedMap (viewChar 0) (formatFeedback wordInput feedback))
+                , h3 [] [ text "This guess could not be correct. " ]
+                , text "Your guess would look like this:"
+                , div [ css [ guessStyle ] ] (List.indexedMap (viewChar 0) (formatFeedback wordInput feedback))
                 , text "But it needs to look like this: "
-                , div [ css [guessStyle] ] (List.indexedMap (viewChar 0) (formatFeedback "     " targetFeedback))
+                , div [ css [ guessStyle ] ] (List.indexedMap (viewChar 0) (formatFeedback "     " targetFeedback))
                 ]
 
         NotAWord wordInput ->
