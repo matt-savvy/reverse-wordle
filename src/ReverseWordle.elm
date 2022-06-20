@@ -379,25 +379,24 @@ update msg model =
             ( { model | gameStatus = Active (Array.length model.guesses - 1) }, Cmd.none )
 
         ClickedReset ->
+            let
+                -- fresh playable state for this word
+                resetGame : ( Model, Cmd Msg )
+                resetGame =
+                    ( { model
+                        | gameStatus = Active (Array.length model.guesses - 1)
+                        , guesses = resetGuesses model.guesses
+                        , guessInput = WordInput ""
+                      }
+                    , Cmd.none
+                    )
+            in
             case model.gameStatus of
                 Active guesses ->
-                    ( { model
-                        | gameStatus = Active (Array.length model.guesses - 1)
-                        , guesses = resetGuesses model.guesses
-                        , guessInput = WordInput ""
-                      }
-                    , Cmd.none
-                    )
+                    resetGame
 
                 Solved ->
-                    -- same as above
-                    ( { model
-                        | gameStatus = Active (Array.length model.guesses - 1)
-                        , guesses = resetGuesses model.guesses
-                        , guessInput = WordInput ""
-                      }
-                    , Cmd.none
-                    )
+                    resetGame
 
                 GeneratePuzzle ->
                     -- shouldn't really be possible
