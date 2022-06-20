@@ -1,0 +1,10 @@
+{
+    "targets": {
+        "ReverseWordle": {
+            "inputs": [
+                "src/ReverseWordle.elm"
+            ],
+            "output": "main.js"
+        }
+    }
+}
