@@ -399,7 +399,7 @@ update msg model =
                         , guesses = resetGuesses model.guesses
                         , guessInput = WordInput ""
                       }
-                    , Cmd.none
+                    , focusInput
                     )
             in
             case model.gameStatus of
