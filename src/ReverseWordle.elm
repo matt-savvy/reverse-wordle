@@ -723,9 +723,9 @@ viewWordInput model =
             div []
                 [ viewInput wordInput
                 , text "This guess could not be correct. Your guess would look like this:"
-                , div [] (List.indexedMap (viewChar 0) (formatFeedback wordInput feedback))
+                , div [ css [guessStyle] ] (List.indexedMap (viewChar 0) (formatFeedback wordInput feedback))
                 , text "But it needs to look like this: "
-                , div [] (List.indexedMap (viewChar 0) (formatFeedback "     " targetFeedback))
+                , div [ css [guessStyle] ] (List.indexedMap (viewChar 0) (formatFeedback "     " targetFeedback))
                 ]
 
         NotAWord wordInput ->
