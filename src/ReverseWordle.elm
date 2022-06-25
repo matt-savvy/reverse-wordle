@@ -99,14 +99,39 @@ resetGuesses guesses =
         guesses
 
 
-initGame : Word -> Model
-initGame word =
+nearestDay : Int -> Int
+nearestDay timestamp =
     let
+        -- 1000ms * 60s * 60m * 24h
+        day =
+            1000 * 60 * 60 * 24
+    in
+    timestamp - modBy day timestamp
+
+
+randomWord : Random.Seed -> ( Word, Random.Seed )
+randomWord seed =
+    let
+        wordGenerator =
+            Random.uniform "plane" masterList
+    in
+    Random.step wordGenerator seed
+
+
+init : Int -> ( Model, Cmd Msg )
+init timestamp =
+    let
+        seed =
+            Random.initialSeed (nearestDay timestamp)
+
+        ( word, nextSeed ) =
+            randomWord seed
+
         puzzle =
             createPuzzle word
 
         guesses =
-            solve puzzle
+            solve puzzle nextSeed
                 |> Array.map
                     (\entry ->
                         case entry of
@@ -122,38 +147,13 @@ initGame word =
                     )
                 |> Array.filter (\( _, feedback ) -> feedback /= solutionFeedback)
     in
-    { word = word
-    , guesses = guesses
-    , guessInput = WordInput ""
-    , gameStatus = Active (Array.length guesses - 1)
-    }
-
-
-nearestDay : Int -> Int
-nearestDay timestamp =
-    let
-        -- 1000ms * 60s * 60m * 24h
-        day =
-            1000 * 60 * 60 * 24
-    in
-    timestamp - modBy day timestamp
-
-
-randomWord : Int -> Word
-randomWord timestamp =
-    let
-        wordGenerator =
-            Random.uniform "plane" masterList
-
-        ( word, _ ) =
-            Random.step wordGenerator (Random.initialSeed (nearestDay timestamp))
-    in
-    word
-
-
-init : Int -> ( Model, Cmd Msg )
-init timestamp =
-    ( initGame (randomWord timestamp), Cmd.none )
+    ( { word = word
+      , guesses = guesses
+      , guessInput = WordInput ""
+      , gameStatus = Active (Array.length guesses - 1)
+      }
+    , Cmd.none
+    )
 
 
 getFeedback : Word -> Word -> Dict Int CharFeedback
@@ -530,9 +530,9 @@ createPuzzle word =
     Puzzle (\guess -> getFeedback guess word)
 
 
-solve : Puzzle -> Array Guess
-solve (Puzzle eval) =
-    solveHelper eval masterList (Random.initialSeed 0) Array.empty
+solve : Puzzle -> Random.Seed -> Array Guess
+solve (Puzzle eval) seed =
+    solveHelper eval masterList seed Array.empty
 
 
 type alias PossibleWords =
@@ -570,7 +570,8 @@ solveHelper eval wordList seed guesses =
         case wordList of
             firstWord :: remainingWordList ->
                 let
-                    (guess, nextSeed) = Random.step (Random.uniform firstWord remainingWordList) seed
+                    ( guess, nextSeed ) =
+                        Random.step (Random.uniform firstWord remainingWordList) seed
 
                     feedback : Feedback
                     feedback =
