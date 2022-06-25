@@ -18,7 +18,7 @@ import Words exposing (masterList)
 -- MAIN
 
 
-main : Program () Model Msg
+main : Program Int Model Msg
 main =
     Browser.element
         { init = init
@@ -131,7 +131,7 @@ initGame word =
     }
 
 
-init : () -> ( Model, Cmd Msg )
+init : Int -> ( Model, Cmd Msg )
 init _ =
     ( { word = ""
       , guesses = Array.empty
@@ -411,7 +411,7 @@ update msg model =
 
                 GeneratePuzzle ->
                     -- shouldn't really be possible
-                    init ()
+                    init 1
 
                 SetupGuesses ->
                     ( { model
