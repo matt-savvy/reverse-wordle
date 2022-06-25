@@ -571,13 +571,13 @@ solveHelper eval wordList seed guesses =
         case wordList of
             firstWord :: remainingWordList ->
                 let
-                    guess = firstWord
+                    (guess, nextSeed) = Random.step (Random.uniform firstWord remainingWordList) seed
 
                     feedback : Feedback
                     feedback =
                         eval guess
                 in
-                solveHelper eval (filterWords feedback guess remainingWordList) seed (Array.push (Guess guess feedback) guesses)
+                solveHelper eval (filterWords feedback guess remainingWordList) nextSeed (Array.push (Guess guess feedback) guesses)
 
             [] ->
                 Debug.todo "replace this with PuzzleResult failure"
