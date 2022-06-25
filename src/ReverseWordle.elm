@@ -130,6 +130,16 @@ initGame word =
     }
 
 
+nearestDay : Int -> Int
+nearestDay timestamp =
+    let
+        -- 1000ms * 60s * 60m * 24h
+        day =
+            1000 * 60 * 60 * 24
+    in
+    timestamp - modBy day timestamp
+
+
 randomWord : Int -> Word
 randomWord timestamp =
     let
@@ -137,7 +147,7 @@ randomWord timestamp =
             Random.uniform "plane" masterList
 
         ( word, _ ) =
-            Random.step wordGenerator (Random.initialSeed (timestamp))
+            Random.step wordGenerator (Random.initialSeed (nearestDay timestamp))
     in
     word
 
