@@ -72,7 +72,6 @@ type GameStatus
     | Solved
     | SetupWord
     | SetupGuesses
-    | GeneratePuzzle
 
 
 type alias Model =
@@ -131,15 +130,21 @@ initGame word =
     }
 
 
+randomWord : Int -> Word
+randomWord timestamp =
+    let
+        wordGenerator =
+            Random.uniform "plane" masterList
+
+        ( word, _ ) =
+            Random.step wordGenerator (Random.initialSeed (timestamp))
+    in
+    word
+
+
 init : Int -> ( Model, Cmd Msg )
-init _ =
-    ( { word = ""
-      , guesses = Array.empty
-      , guessInput = WordInput ""
-      , gameStatus = GeneratePuzzle
-      }
-    , Random.generate GotWord (Random.uniform "plane" masterList)
-    )
+init timestamp =
+    ( initGame (randomWord timestamp), Cmd.none )
 
 
 getFeedback : Word -> Word -> Dict Int CharFeedback
@@ -305,9 +310,6 @@ update msg model =
 
         GotWord wordInput ->
             case model.gameStatus of
-                GeneratePuzzle ->
-                    ( initGame wordInput, Cmd.none )
-
                 SetupWord ->
                     ( { model | word = wordInput, gameStatus = SetupGuesses, guessInput = WordInput "" }, Cmd.none )
 
@@ -377,9 +379,6 @@ update msg model =
                 Solved ->
                     ( model, Cmd.none )
 
-                GeneratePuzzle ->
-                    ( model, Cmd.none )
-
         ClickedAddGuess ->
             ( { model | guesses = Array.slice 0 5 (Array.push ( NoGuess, initFeedback ) model.guesses) }, Cmd.none )
 
@@ -408,10 +407,6 @@ update msg model =
 
                 Solved ->
                     resetGame
-
-                GeneratePuzzle ->
-                    -- shouldn't really be possible
-                    init 1
 
                 SetupGuesses ->
                     ( { model
@@ -635,9 +630,6 @@ view model =
                 Solved ->
                     False
 
-                GeneratePuzzle ->
-                    False
-
         guessList : List ( Guess, Feedback )
         guessList =
             Array.toList (Array.push ( Solution model.word, solutionFeedback ) model.guesses)
@@ -664,9 +656,6 @@ view model =
 
             Active _ ->
                 viewWordInput model
-
-            GeneratePuzzle ->
-                text ""
         ]
 
 
