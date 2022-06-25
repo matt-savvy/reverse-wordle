@@ -569,8 +569,10 @@ solveHelper eval wordList seed guesses =
 
     else
         case wordList of
-            guess :: remainingWordList ->
+            firstWord :: remainingWordList ->
                 let
+                    guess = firstWord
+
                     feedback : Feedback
                     feedback =
                         eval guess
