@@ -107,7 +107,6 @@ initGame word =
 
         guesses =
             solve puzzle
-                |> Debug.log "puzzle"
                 |> Array.map
                     (\entry ->
                         case entry of
@@ -575,7 +574,7 @@ solveHelper eval wordList seed guesses =
 
                     feedback : Feedback
                     feedback =
-                        eval guess
+                        eval (Debug.log "guess" guess)
                 in
                 solveHelper eval (filterWords feedback guess remainingWordList) nextSeed (Array.push (Guess guess feedback) guesses)
 
