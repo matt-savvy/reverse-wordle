@@ -533,7 +533,7 @@ createPuzzle word =
 
 solve : Puzzle -> Array Guess
 solve (Puzzle eval) =
-    solveHelper eval masterList Array.empty
+    solveHelper eval masterList (Random.initialSeed 0) Array.empty
 
 
 type alias PossibleWords =
@@ -554,8 +554,8 @@ isSolvedClassic guesses =
             False
 
 
-solveHelper : (Word -> Feedback) -> PossibleWords -> Array Guess -> Array Guess
-solveHelper eval wordList guesses =
+solveHelper : (Word -> Feedback) -> PossibleWords -> Random.Seed -> Array Guess -> Array Guess
+solveHelper eval wordList seed guesses =
     let
         filterWords : Feedback -> Word -> PossibleWords -> PossibleWords
         filterWords feedback lastGuess remainingWords =
@@ -575,7 +575,7 @@ solveHelper eval wordList guesses =
                     feedback =
                         eval guess
                 in
-                solveHelper eval (filterWords feedback guess remainingWordList) (Array.push (Guess guess feedback) guesses)
+                solveHelper eval (filterWords feedback guess remainingWordList) seed (Array.push (Guess guess feedback) guesses)
 
             [] ->
                 Debug.todo "replace this with PuzzleResult failure"
