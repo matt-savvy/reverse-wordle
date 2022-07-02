@@ -4,6 +4,7 @@ import Array exposing (Array)
 import Dict exposing (Dict)
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
+import Random
 import ReverseWordle exposing (..)
 import Test exposing (..)
 import Words exposing (masterList)
@@ -58,14 +59,14 @@ solverTests =
                    )
     in
     describe "solver tests"
-        [ fuzz (Fuzz.intRange 0 (Array.length filteredWords)) "last guess is the word input" <|
-            \i ->
+        [ fuzz2 (Fuzz.intRange 0 (Array.length filteredWords)) Fuzz.int "last guess is the word input" <|
+            \i seed ->
                 let
                     word : String
                     word =
                         getWord i
                 in
                 Expect.equal
-                    (getLastGuess (solve (createPuzzle word)))
+                    (getLastGuess (solve (createPuzzle word) (Random.initialSeed seed)))
                     word
         ]

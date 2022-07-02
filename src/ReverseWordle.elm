@@ -584,6 +584,7 @@ solveHelper eval wordList seed guesses =
 
 
 
+
 -- VIEW
 
 
