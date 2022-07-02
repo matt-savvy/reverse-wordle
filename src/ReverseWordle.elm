@@ -575,13 +575,14 @@ solveHelper eval wordList seed guesses =
 
                     feedback : Feedback
                     feedback =
-                        eval (Debug.log "guess" guess)
+                        eval guess
                 in
                 solveHelper eval (filterWords feedback guess remainingWordList) nextSeed (Array.push (Guess guess feedback) guesses)
 
             [] ->
-                Debug.todo "replace this with PuzzleResult failure"
-
+                -- if we got here, it means our solver ran out of valid words to try
+                -- start solving again from scratch
+                solveHelper eval masterList seed Array.empty
 
 
 
