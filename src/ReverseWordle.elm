@@ -5,9 +5,8 @@ import Browser
 import Browser.Dom as Dom
 import Css exposing (..)
 import Dict exposing (Dict)
-import Html
 import Html.Styled exposing (Html, button, div, form, h1, h2, h3, input, label, span, text, toUnstyled)
-import Html.Styled.Attributes as Attr exposing (css, disabled, id, maxlength, minlength, required, type_, value)
+import Html.Styled.Attributes as Attr exposing (css, id, maxlength, minlength, type_, value)
 import Html.Styled.Events exposing (onClick, onInput, onSubmit)
 import Random
 import Task
@@ -135,7 +134,7 @@ init timestamp =
                 |> Array.map
                     (\entry ->
                         case entry of
-                            Guess w feedback ->
+                            Guess _ feedback ->
                                 -- ( Guess w feedback, feedback )
                                 ( NoGuess, feedback )
 
@@ -165,7 +164,7 @@ getFeedback guess word =
 
 
 addWordDict : FeedbackRecord -> FeedbackRecord
-addWordDict { guess, word, wordDict, feedback } =
+addWordDict { guess, word, feedback } =
     FeedbackRecord guess word (createWordDict (word |> Array.toList |> String.fromList)) feedback
 
 
@@ -178,7 +177,7 @@ getFeedbackHelper feedbackRecord =
 
             else
                 case ( Array.get i guess, Array.get i word ) of
-                    ( Just guessChar, Just wordChar ) ->
+                    ( Just guessChar, Just _ ) ->
                         if (Dict.get guessChar wordDict |> Maybe.withDefault 0) > 0 then
                             FeedbackRecord guess word (Dict.update guessChar decrementCount wordDict) (Dict.insert i InWord feedback)
 
@@ -411,7 +410,7 @@ update msg model =
                     )
             in
             case model.gameStatus of
-                Active guesses ->
+                Active _ ->
                     resetGame
 
                 Solved ->
@@ -546,7 +545,7 @@ type alias PossibleWords =
 isSolvedClassic : Array Guess -> Bool
 isSolvedClassic guesses =
     case Array.get (Array.length guesses - 1) guesses of
-        Just (Guess word feedback) ->
+        Just (Guess _ feedback) ->
             feedback == solutionFeedback
 
         _ ->
@@ -589,6 +588,13 @@ solveHelper eval wordList seed guesses =
 -- VIEW
 
 
+theme: { colors : { inWord: Color
+                  , incorrect : Color
+                  , correct : Color
+                  , backgroundColor : Color
+                  , color : Color
+                  }
+       }
 theme =
     { colors =
         { inWord = rgb 181 159 58
