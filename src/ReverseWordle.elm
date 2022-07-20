@@ -545,13 +545,15 @@ solveHelper eval wordList seed guesses =
 -- VIEW
 
 
-theme: { colors : { inWord: Color
-                  , incorrect : Color
-                  , correct : Color
-                  , backgroundColor : Color
-                  , color : Color
-                  }
-       }
+theme :
+    { colors :
+        { inWord : Color
+        , incorrect : Color
+        , correct : Color
+        , backgroundColor : Color
+        , color : Color
+        }
+    }
 theme =
     { colors =
         { inWord = rgb 181 159 58
