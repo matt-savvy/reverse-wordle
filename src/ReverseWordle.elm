@@ -5,7 +5,7 @@ import Browser
 import Browser.Dom as Dom
 import Css exposing (..)
 import Dict exposing (Dict)
-import Html.Styled exposing (Html, button, div, form, h1, h2, h3, input, label, span, text, toUnstyled)
+import Html.Styled exposing (Html, button, div, form, h1, h2, h3, input, span, text, toUnstyled)
 import Html.Styled.Attributes as Attr exposing (css, id, maxlength, minlength, type_, value)
 import Html.Styled.Events exposing (onClick, onInput, onSubmit)
 import Random
@@ -69,7 +69,6 @@ type alias SelectionIndex =
 type GameStatus
     = Active SelectionIndex
     | Solved
-    | SetupWord
     | SetupGuesses
 
 
@@ -318,9 +317,6 @@ update msg model =
 
         GotWord wordInput ->
             case model.gameStatus of
-                SetupWord ->
-                    ( { model | word = wordInput, gameStatus = SetupGuesses, guessInput = WordInput "" }, Cmd.none )
-
                 SetupGuesses ->
                     -- shouldn't really be able to get a guess while solved
                     ( model, Cmd.none )
@@ -375,9 +371,6 @@ update msg model =
 
         ClickedGuess i j ->
             case model.gameStatus of
-                SetupWord ->
-                    ( model, Cmd.none )
-
                 SetupGuesses ->
                     ( { model | guesses = updateFeedback i j model.guesses }, Cmd.none )
 
@@ -420,14 +413,6 @@ update msg model =
                     ( { model
                         | guesses = Array.empty
                         , guessInput = WordInput ""
-                      }
-                    , Cmd.none
-                    )
-
-                SetupWord ->
-                    ( { model
-                        | guessInput = WordInput ""
-                        , word = ""
                       }
                     , Cmd.none
                     )
@@ -638,9 +623,6 @@ view model =
         getIsSelected : Int -> Bool
         getIsSelected index =
             case model.gameStatus of
-                SetupWord ->
-                    False
-
                 SetupGuesses ->
                     False
 
@@ -662,9 +644,6 @@ view model =
         , case model.gameStatus of
             Solved ->
                 h2 [] [ text "you did it!" ]
-
-            SetupWord ->
-                label [] [ text "enter your word", viewWordInput model ]
 
             SetupGuesses ->
                 div []
