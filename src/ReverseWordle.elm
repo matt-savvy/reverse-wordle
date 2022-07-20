@@ -69,7 +69,6 @@ type alias SelectionIndex =
 type GameStatus
     = Active SelectionIndex
     | Solved
-    | SetupGuesses
 
 
 type alias Model =
@@ -317,10 +316,6 @@ update msg model =
 
         GotWord wordInput ->
             case model.gameStatus of
-                SetupGuesses ->
-                    -- shouldn't really be able to get a guess while solved
-                    ( model, Cmd.none )
-
                 Solved ->
                     -- shouldn't really be able to get a guess while solved
                     ( model, Cmd.none )
@@ -369,11 +364,8 @@ update msg model =
             in
             ( { model | guessInput = WordInput (cleanInput guessText) }, Cmd.none )
 
-        ClickedGuess i j ->
+        ClickedGuess i _ ->
             case model.gameStatus of
-                SetupGuesses ->
-                    ( { model | guesses = updateFeedback i j model.guesses }, Cmd.none )
-
                 Active _ ->
                     ( { model | gameStatus = Active i }, focusInput )
 
@@ -408,14 +400,6 @@ update msg model =
 
                 Solved ->
                     resetGame
-
-                SetupGuesses ->
-                    ( { model
-                        | guesses = Array.empty
-                        , guessInput = WordInput ""
-                      }
-                    , Cmd.none
-                    )
 
 
 removeAtIndex : Int -> Array a -> Array a
@@ -623,9 +607,6 @@ view model =
         getIsSelected : Int -> Bool
         getIsSelected index =
             case model.gameStatus of
-                SetupGuesses ->
-                    False
-
                 Active selectedIndex ->
                     index == selectedIndex
 
@@ -644,14 +625,6 @@ view model =
         , case model.gameStatus of
             Solved ->
                 h2 [] [ text "you did it!" ]
-
-            SetupGuesses ->
-                div []
-                    [ button [ Attr.disabled (Array.length model.guesses >= 5), onClick ClickedAddGuess ] [ text "add guess" ]
-
-                    --  TODO disable this if the feedback is empty ?
-                    , button [ onClick ClickedFinishedSetup ] [ text "finished setup" ]
-                    ]
 
             Active _ ->
                 viewWordInput model
@@ -701,9 +674,6 @@ viewGuess isSelected index guess feedback gameStatus =
 
         NoGuess ->
             case gameStatus of
-                SetupGuesses ->
-                    div [] [ viewG "     ", button [ onClick (ClickedRemoveGuess index) ] [ text "x" ] ]
-
                 _ ->
                     div [] [ viewG "     " ]
 
