@@ -256,9 +256,6 @@ type Msg
     | WordInputChanged String
     | ClickedGuess Int Int
     | ClickedReset
-    | ClickedAddGuess
-    | ClickedRemoveGuess SelectionIndex
-    | ClickedFinishedSetup
     | NoOp
 
 
@@ -371,15 +368,6 @@ update msg model =
 
                 Solved ->
                     ( model, Cmd.none )
-
-        ClickedAddGuess ->
-            ( { model | guesses = Array.slice 0 5 (Array.push ( NoGuess, initFeedback ) model.guesses) }, Cmd.none )
-
-        ClickedRemoveGuess i ->
-            ( { model | guesses = removeAtIndex i model.guesses }, Cmd.none )
-
-        ClickedFinishedSetup ->
-            ( { model | gameStatus = Active (Array.length model.guesses - 1) }, Cmd.none )
 
         ClickedReset ->
             let
