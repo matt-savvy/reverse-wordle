@@ -256,6 +256,7 @@ type Msg
     | WordInputChanged String
     | ClickedGuess Int Int
     | ClickedReset
+    | ClickedEnter
     | NoOp
 
 
@@ -310,6 +311,14 @@ update msg model =
     case msg of
         NoOp ->
             ( model, Cmd.none )
+
+        ClickedEnter ->
+            case model.guessInput of
+                WordInput word ->
+                    update (GotWord word) model
+
+                _ ->
+                    ( model, Cmd.none )
 
         GotWord wordInput ->
             case model.gameStatus of
@@ -784,7 +793,7 @@ viewKeyboard =
     div []
         [ div [] (viewKeys topRow)
         , div [] (viewKeys homeRow)
-        , div [] (viewKeys bottomRow)
+        , div [] (viewKey "ENTER" ClickedEnter :: viewKeys bottomRow)
         ]
 
 
