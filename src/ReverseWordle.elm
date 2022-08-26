@@ -775,7 +775,7 @@ viewKeyboard =
                     , margin2 (px 2) (px 6)
                     , color theme.colors.color
                     , height (px 48)
-                    , width (px 33)
+                    , minWidth (px 33)
                     ]
                 , onClick handler
                 ]
