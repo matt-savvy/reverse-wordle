@@ -257,6 +257,7 @@ type Msg
     | ClickedGuess Int Int
     | ClickedReset
     | ClickedEnter
+    | ClickedBackspace
     | NoOp
 
 
@@ -378,6 +379,14 @@ update msg model =
                             str
             in
             ( { model | guessInput = WordInput (appendInput (cleanInput guessText)) }, Cmd.none )
+
+        ClickedBackspace ->
+            case model.guessInput of
+                WordInput input ->
+                    ( { model | guessInput = WordInput (String.dropRight 1 input) }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
 
         ClickedGuess i _ ->
             case model.gameStatus of
@@ -793,7 +802,7 @@ viewKeyboard =
     div []
         [ div [] (viewKeys topRow)
         , div [] (viewKeys homeRow)
-        , div [] (viewKey "ENTER" ClickedEnter :: viewKeys bottomRow)
+        , div [] ((viewKey "ENTER" ClickedEnter :: viewKeys bottomRow) ++ [ viewKey "⌫" ClickedBackspace ])
         ]
 
 
