@@ -1780,6 +1780,7 @@ masterList =
     , "slant"
     , "slash"
     , "slate"
+    , "slave"
     , "sleek"
     , "sleep"
     , "sleet"
