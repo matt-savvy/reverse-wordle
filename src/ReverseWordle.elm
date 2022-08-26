@@ -358,8 +358,17 @@ update msg model =
                 cleanInput : String -> String
                 cleanInput str =
                     str |> String.toLower |> String.filter Char.isAlpha
+
+                appendInput : String -> String
+                appendInput str =
+                    case model.guessInput of
+                        WordInput input ->
+                            input ++ str
+
+                        _ ->
+                            str
             in
-            ( { model | guessInput = WordInput (cleanInput guessText) }, Cmd.none )
+            ( { model | guessInput = WordInput (appendInput (cleanInput guessText)) }, Cmd.none )
 
         ClickedGuess i _ ->
             case model.gameStatus of
@@ -759,6 +768,7 @@ viewKeyboard =
                     , height (px 48)
                     , width (px 33)
                     ]
+                , onClick (WordInputChanged label)
                 ]
                 [ text (String.toUpper label) ]
 
