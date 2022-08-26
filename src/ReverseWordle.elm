@@ -644,18 +644,27 @@ selectedGuessStyle =
     Css.batch [ guessStyle, border3 (px 1) solid (rgb 128 128 128) ]
 
 
+getPreview : WordInput -> Word -> String
+getPreview wordInput word =
+    case wordInput of
+        WordInput inputWord ->
+            if String.length inputWord > 0 then
+                String.padRight 5 ' ' inputWord
+
+            else
+                word
+
+        _ ->
+            word
+
+
 viewGuess : Bool -> WordInput -> Int -> Guess -> Feedback -> GameStatus -> Html Msg
 viewGuess isSelected guessInput index guess feedback gameStatus =
     let
         viewG : Word -> Html Msg
         viewG word =
             if isSelected then
-                case guessInput of
-                    WordInput inputWord ->
-                        div [ css [ selectedGuessStyle ] ] (List.indexedMap (viewChar index) (formatFeedback (String.padRight 5 ' ' inputWord) feedback))
-
-                    _ ->
-                        div [ css [ selectedGuessStyle ] ] (List.indexedMap (viewChar index) (formatFeedback word feedback))
+                div [ css [ selectedGuessStyle ] ] (List.indexedMap (viewChar index) (formatFeedback (getPreview guessInput word) feedback))
 
             else
                 div [ css [ guessStyle ] ] (List.indexedMap (viewChar index) (formatFeedback word feedback))
