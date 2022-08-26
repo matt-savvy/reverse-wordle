@@ -364,7 +364,7 @@ update msg model =
         ClickedGuess i _ ->
             case model.gameStatus of
                 Active _ ->
-                    ( { model | gameStatus = Active i }, focusInput )
+                    ( { model | gameStatus = Active i, guessInput = WordInput (getGuessInputByIndex i model.guesses) }, focusInput )
 
                 Solved ->
                     ( model, Cmd.none )
@@ -439,6 +439,20 @@ updateGuesses guess feedback index guesses =
         |> Maybe.withDefault ( NoGuess, Dict.empty )
         |> (\( _, existingFeedback ) ->
                 Array.set index ( Guess guess feedback, existingFeedback ) guesses
+           )
+
+
+getGuessInputByIndex : Int -> Guesses -> String
+getGuessInputByIndex index guesses =
+    Array.get index guesses
+        |> Maybe.withDefault ( NoGuess, Dict.empty )
+        |> (\( guess, _ ) ->
+                case guess of
+                    Guess word _ ->
+                        word
+
+                    _ ->
+                        ""
            )
 
 
