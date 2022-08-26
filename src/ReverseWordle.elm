@@ -610,7 +610,7 @@ view model =
     div [ css [ mainStyle, fontSize (px 16) ] ]
         [ h1 [ css [ opacity (Css.num 0.9) ] ] [ text "Reverse Wordle" ]
         , div []
-            (List.indexedMap (\i ( guess, feedback ) -> viewGuess (getIsSelected i) i guess feedback model.gameStatus) guessList)
+            (List.indexedMap (\i ( guess, feedback ) -> viewGuess (getIsSelected i) model.guessInput i guess feedback model.gameStatus) guessList)
         , button [ onClick ClickedReset ] [ text "reset" ]
         , case model.gameStatus of
             Solved ->
@@ -644,19 +644,21 @@ selectedGuessStyle =
     Css.batch [ guessStyle, border3 (px 1) solid (rgb 128 128 128) ]
 
 
-viewGuess : Bool -> Int -> Guess -> Feedback -> GameStatus -> Html Msg
-viewGuess isSelected index guess feedback gameStatus =
+viewGuess : Bool -> WordInput -> Int -> Guess -> Feedback -> GameStatus -> Html Msg
+viewGuess isSelected guessInput index guess feedback gameStatus =
     let
         viewG : Word -> Html Msg
         viewG word =
-            div
-                (if isSelected then
-                    [ css [ selectedGuessStyle ] ]
+            if isSelected then
+                case guessInput of
+                    WordInput inputWord ->
+                        div [ css [ selectedGuessStyle ] ] (List.indexedMap (viewChar index) (formatFeedback (String.padRight 5 ' ' inputWord) feedback))
 
-                 else
-                    [ css [ guessStyle ] ]
-                )
-                (List.indexedMap (viewChar index) (formatFeedback word feedback))
+                    _ ->
+                        div [ css [ selectedGuessStyle ] ] (List.indexedMap (viewChar index) (formatFeedback word feedback))
+
+            else
+                div [ css [ guessStyle ] ] (List.indexedMap (viewChar index) (formatFeedback word feedback))
     in
     case guess of
         Guess word _ ->
