@@ -316,7 +316,12 @@ update msg model =
         ClickedEnter ->
             case model.guessInput of
                 WordInput word ->
-                    update (GotWord word) model
+                    if String.length word == 5 then
+                        update (GotWord word) model
+
+                    else
+                        -- TODO NotEnoughLetters
+                        ( model, Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
