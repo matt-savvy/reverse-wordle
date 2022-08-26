@@ -731,16 +731,16 @@ viewChar guessIndex charIndex ( feedback, char ) =
         [ text (String.fromChar char |> String.toUpper) ]
 
 
+viewInput : String -> Html Msg
+viewInput wordInput =
+    form
+        [ onSubmit (GotWord wordInput), css [ displayFlex, flexDirection column, alignItems center ] ]
+        [ input [ id "guess-input", type_ "text", value wordInput, Attr.required True, onInput WordInputChanged, maxlength 5, minlength 5 ] []
+        ]
+
+
 viewWordInput : Model -> Html Msg
 viewWordInput model =
-    let
-        viewInput : String -> Html Msg
-        viewInput wordInput =
-            form
-                [ onSubmit (GotWord wordInput), css [ displayFlex, flexDirection column, alignItems center ] ]
-                [ input [ id "guess-input", type_ "text", value wordInput, Attr.required True, onInput WordInputChanged, maxlength 5, minlength 5 ] []
-                ]
-    in
     case model.guessInput of
         WordInput wordInput ->
             div [] [ viewInput wordInput ]
