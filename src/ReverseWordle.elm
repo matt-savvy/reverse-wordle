@@ -788,8 +788,10 @@ viewKeyboard =
                     [ backgroundColor theme.colors.keyColor
                     , margin2 (px 2) (px 6)
                     , color theme.colors.color
-                    , height (px 48)
-                    , minWidth (px 33)
+                    , height (px 58)
+                    , minWidth (px 43)
+                    , borderRadius (px 4)
+                    , border zero
                     ]
                 , onClick handler
                 ]
