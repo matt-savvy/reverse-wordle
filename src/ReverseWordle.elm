@@ -756,10 +756,10 @@ viewKeyboard =
         viewKeys : String -> List (Html Msg)
         viewKeys letters =
             String.split "" letters
-                |> List.map (\letter -> key letter (WordInputChanged letter))
+                |> List.map (\letter -> viewKey letter (WordInputChanged letter))
 
-        key : String -> Msg -> Html Msg
-        key label handler =
+        viewKey : String -> Msg -> Html Msg
+        viewKey label handler =
             button
                 [ css
                     [ backgroundColor theme.colors.keyColor
