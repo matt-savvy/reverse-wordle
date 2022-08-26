@@ -564,6 +564,7 @@ theme :
         { inWord : Color
         , incorrect : Color
         , correct : Color
+        , keyColor : Color
         , backgroundColor : Color
         , color : Color
         }
@@ -572,6 +573,7 @@ theme =
     { colors =
         { inWord = rgb 181 159 58
         , incorrect = rgb 58 58 60
+        , keyColor = rgb 129 131 132
         , correct = rgb 83 141 78
         , backgroundColor = rgb 18 18 18
         , color = rgb 255 255 255
@@ -739,11 +741,48 @@ viewInput wordInput =
         ]
 
 
+viewKeyboard : Html Msg
+viewKeyboard =
+    let
+        viewKeys : String -> List (Html Msg)
+        viewKeys letters =
+            String.split "" letters
+                |> List.map key
+
+        key : String -> Html Msg
+        key label =
+            button
+                [ css
+                    [ backgroundColor theme.colors.keyColor
+                    , margin2 (px 2) (px 6)
+                    , color theme.colors.color
+                    , height (px 48)
+                    , width (px 33)
+                    ]
+                ]
+                [ text (String.toUpper label) ]
+
+        topRow =
+            "qwertyuiop"
+
+        homeRow =
+            "asdfghjkl"
+
+        bottomRow =
+            "zxcvbnm"
+    in
+    div []
+        [ div [] (viewKeys topRow)
+        , div [] (viewKeys homeRow)
+        , div [] (viewKeys bottomRow)
+        ]
+
+
 viewWordInput : Model -> Html Msg
 viewWordInput model =
     case model.guessInput of
-        WordInput wordInput ->
-            div [] [ viewInput wordInput ]
+        WordInput _ ->
+            div [] [ viewKeyboard ]
 
         RejectedInput wordInput feedback ->
             let
@@ -758,7 +797,7 @@ viewWordInput model =
                             Dict.empty
             in
             div [ css [ displayFlex, flexDirection column, alignItems center ] ]
-                [ viewInput wordInput
+                [ viewKeyboard
                 , h3 [] [ text "This guess could not be correct. " ]
                 , text "Your guess would look like this:"
                 , div [ css [ guessStyle ] ] (List.indexedMap (viewChar 0) (formatFeedback wordInput feedback))
@@ -768,6 +807,6 @@ viewWordInput model =
 
         NotAWord wordInput ->
             div []
-                [ viewInput wordInput
+                [ viewKeyboard
                 , text (wordInput ++ " is not a word in our dictionary")
                 ]
