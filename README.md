@@ -25,6 +25,7 @@ elm-test --watch --fuzz 10
 ### Compile
 
 ```
+rm dist/*.*
 elm make src/ReverseWordle.elm --optimize --output=dist/main.js
 npm run uglify
 sed 's/main.js/main.min.js/' index.html > dist/index.html
